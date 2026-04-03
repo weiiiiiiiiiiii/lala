@@ -5,6 +5,20 @@
       "expo-router"
     ],
     "name": "lala",
-    "slug": "lala"
+    "slug": "lala",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f2ff4200-00a8-4962-96d4-e24a5f44873e"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f2ff4200-00a8-4962-96d4-e24a5f44873e"
+    },
+    "android": {},
+    "ios": {}
   }
 }
