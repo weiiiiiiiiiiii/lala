@@ -63,9 +63,8 @@ export default function MyList() {
             </Pressable>
           </View>
         </View>
-      </View>
-      {/* 喜愛 */}
-      <View style={styles.listCon}>
+
+        {/* 喜愛 */}
         <View style={styles.listitem}>
           <Text style={styles.listText}>喜愛</Text>
           <View style={{ paddingHorizontal: 20 }}>
@@ -81,26 +80,24 @@ export default function MyList() {
             </Pressable>
           </View>
         </View>
-      </View>
 
-      {/* 推薦 */}
-      <View >
-        <View style={styles.listitem}>
-          <Text style={styles.listText}>推薦</Text>
-          <FlatList
-            data={recommendItem}
-            renderItem={({ item }) => <ListScroll part={item} />}
-            horizontal={true}             // 開啟橫向排列
-            showsHorizontalScrollIndicator={false} // 隱藏橫向捲動條
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-          />
+        {/* 推薦 */}
+        <View >
+          <View style={styles.listitem}>
+            <Text style={styles.listText}>推薦</Text>
+            <FlatList
+              data={recommendItem}
+              renderItem={({ item }) => <ListScroll part={item} />}
+              horizontal={true}             // 開啟橫向排列
+              showsHorizontalScrollIndicator={false} // 隱藏橫向捲動條
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
         </View>
-      </View>
 
-      {/* 我的 */}
-      <View style={styles.listCon}>
+        {/* 我的 */}
         <View style={styles.listitem}>
           <Text style={styles.listText}>我的</Text>
 
@@ -124,7 +121,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   listCon: {
-    paddingVertical: 20
+    paddingVertical: 20,
+    gap:25
   },
   listitem: {
     gap: 10,
