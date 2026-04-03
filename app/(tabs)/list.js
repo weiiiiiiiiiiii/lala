@@ -1,11 +1,11 @@
 // 修改後
-import { View, Text, StyleSheet } from 'react-native';
-import List from '../../components/List'; // 引入你的清單元件
+import { View, StyleSheet } from 'react-native';
+import MyList from '../../components/MyList'; // 引入你的清單元件
 
 export default function ListPage() {
   return (
       <View style={styles.content}>
-        <List />
+        <MyList />
       </View>
   );
 }
