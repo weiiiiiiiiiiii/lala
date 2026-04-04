@@ -7,15 +7,14 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-
 const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢"];
+const THEME_COLOR = '#A79E8D'; 
+const CONTENT_BG = '#C2B39A'; 
 
 export default function Home() {
   const scrollRef = useRef(null);
-  // 用於儲存各區塊的 Y 座標
   const sectionLayouts = useRef({});
 
-  // 滾動到指定位置的函式
   const scrollToSection = (category) => {
     const y = sectionLayouts.current[category];
     if (y !== undefined) {
@@ -23,11 +22,9 @@ export default function Home() {
     }
   };
 
-  // 區塊組件 (方便你之後插入圖片)
   const ExerciseCard = () => (
     <View style={styles.card}>
-      {/* 這裡之後可以放 <Image /> */}
-      <Text style={{ color: '#ccc' }}>圖片預留位置</Text>
+      <Text style={{ color: '#A09484', fontSize: 12 }}>圖片預留位置</Text>
     </View>
   );
 
@@ -49,16 +46,17 @@ export default function Home() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
+    // 透過 edges 讓背景色延伸到頂部狀態列
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style="dark" />
       
-      {/* Header: Logo & App名稱 */}
+      {/* Header 部分 */}
       <View style={styles.header}>
         <View style={styles.logoPlaceholder} /> 
-        <Text style={styles.appTitle}>LALA 健身</Text>
+        <Text style={styles.appTitle}>Emo 伸</Text>
       </View>
 
-      {/* Category Bar: 可水平滑動 */}
+      {/* Category Bar 部分 */}
       <View style={styles.categoryWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryBar}>
           {categories.map((item, index) => (
@@ -73,14 +71,18 @@ export default function Home() {
         </ScrollView>
       </View>
 
-      {/* Main Content: 垂直滾動內容 */}
-      <ScrollView ref={scrollRef} style={styles.contentScroll}>
-        {categories.map((item, index) => (
-          <Section key={index} title={item} />
-        ))}
-        {/* 底部留白避免被 TabBar 遮住 */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      {/* 內容區塊：背景換回 C2B39A */}
+      <View style={{ flex: 1, backgroundColor: CONTENT_BG }}>
+        <ScrollView ref={scrollRef} style={styles.contentScroll}>
+          <View style={{ paddingTop: 20 }}>
+            {categories.map((item, index) => (
+              <Section key={index} title={item} />
+            ))}
+          </View>
+          {/* 底部墊高，避免被 TabBar 擋住最後一個區塊 */}
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -88,18 +90,21 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C2B39A', // 照設計圖的褐灰色
+    backgroundColor: THEME_COLOR, 
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 15,
+    backgroundColor: THEME_COLOR,
   },
   logoPlaceholder: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#fff', // 之後放 Logo
+    backgroundColor: '#fff',
     marginRight: 10,
   },
   appTitle: {
@@ -108,8 +113,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoryWrapper: {
-    height: 50,
-    marginBottom: 10,
+    paddingBottom: 15,
+    backgroundColor: THEME_COLOR,
   },
   categoryBar: {
     paddingHorizontal: 15,
@@ -126,17 +131,18 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 14,
     color: '#555',
+    fontWeight: '600',
   },
   contentScroll: {
     flex: 1,
     paddingHorizontal: 15,
   },
   sectionContainer: {
-    marginBottom: 25,
+    marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 15,
     color: '#333',
   },
@@ -146,18 +152,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    width: (width - 50) / 2, // 計算兩格卡片的寬度
-    height: 100,
+    width: (width - 45) / 2, 
+    height: 110,
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 16,
     marginBottom: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    // 陰影
+    // 輕微陰影讓卡片更精緻
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
 });
