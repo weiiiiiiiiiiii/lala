@@ -1,17 +1,107 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// 匯入你的 SVG 組件 (請確保原始檔已移除 stroke 屬性)
+import HomeIcon from '../../assets/images/home_icon.svg';
+import ListIcon from '../../assets/images/list_icon.svg';
+import UserIcon from '../../assets/images/user_icon.svg';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
+  const Colors = {
+    bg: '#A79E8D',       // ✨ 同步主色調
+    active: '#F3C0BA',   // 選中暖粉色
+    inactive: '#9E554D', // 未選中深紅褐
+  };
+
   return (
-    <Tabs screenOptions={{ 
-      tabBarStyle: { backgroundColor: '#C2B39A', borderTopWidth: 0, height: 60 },
-      tabBarActiveTintColor: '#fff',
-      tabBarInactiveTintColor: '#4A4A4A',
-      headerShown: false, 
-    }}>
-      <Tabs.Screen name="index" options={{ title: '主頁', tabBarIcon: ({color}) => <Ionicons name="home" size={24} color={color}/> }} />
-      <Tabs.Screen name="list" options={{ title: '清單', tabBarIcon: ({color}) => <Ionicons name="list" size={24} color={color}/> }} />
-      <Tabs.Screen name="profile" options={{ title: '我的', tabBarIcon: ({color}) => <Ionicons name="person" size={24} color={color}/> }} />
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: Colors.bg,
+          borderTopWidth: 0,
+          height: 50 + insets.bottom,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarActiveTintColor: Colors.active,
+        tabBarInactiveTintColor: Colors.inactive,
+        headerShown: false,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginBottom: insets.bottom > 0 ? 0 : 4,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '主頁',
+          tabBarIcon: ({ focused }) => {
+            const color = focused ? Colors.active : Colors.inactive;
+            return (
+              <View style={{ marginTop: 8 }}>
+                <HomeIcon 
+                  key={`home-${focused}`}
+                  width={24} 
+                  height={24} 
+                  stroke={color} 
+                  color={color} 
+                  fill="none" 
+                />
+              </View>
+            );
+          },
+        }}
+      />
+
+      <Tabs.Screen
+        name="list"
+        options={{
+          title: '清單',
+          tabBarIcon: ({ focused }) => {
+            const color = focused ? Colors.active : Colors.inactive;
+            return (
+              <View style={{ marginTop: 8 }}>
+                <ListIcon 
+                  key={`list-${focused}`}
+                  width={24} 
+                  height={24} 
+                  stroke={color} 
+                  color={color} 
+                  fill="none" 
+                />
+              </View>
+            );
+          },
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: '我的',
+          tabBarIcon: ({ focused }) => {
+            const color = focused ? Colors.active : Colors.inactive;
+            return (
+              <View style={{ marginTop: 8 }}>
+                <UserIcon 
+                  key={`user-${focused}`}
+                  width={24} 
+                  height={24} 
+                  stroke={color} 
+                  color={color} 
+                  fill="none" 
+                />
+              </View>
+            );
+          },
+        }}
+      />
     </Tabs>
   );
 }
