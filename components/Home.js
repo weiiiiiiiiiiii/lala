@@ -1,15 +1,15 @@
 import React, { useRef } from 'react';
-import { 
-  StyleSheet, Text, View, ScrollView, 
-  TouchableOpacity, Dimensions 
+import {
+  StyleSheet, Text, View, ScrollView,
+  TouchableOpacity, Dimensions
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢"];
-const THEME_COLOR = '#A79E8D'; 
-const CONTENT_BG = '#C2B39A'; 
+const THEME_COLOR = '#A79E8D';
+const CONTENT_BG = '#C2B39A';
 
 export default function Home() {
   const scrollRef = useRef(null);
@@ -29,7 +29,7 @@ export default function Home() {
   );
 
   const Section = ({ title }) => (
-    <View 
+    <View
       onLayout={(event) => {
         sectionLayouts.current[title] = event.nativeEvent.layout.y;
       }}
@@ -49,26 +49,28 @@ export default function Home() {
     // 透過 edges 讓背景色延伸到頂部狀態列
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
-      
-      {/* Header 部分 */}
-      <View style={styles.header}>
-        <View style={styles.logoPlaceholder} /> 
-        <Text style={styles.appTitle}>Emo 伸</Text>
-      </View>
 
-      {/* Category Bar 部分 */}
-      <View style={styles.categoryWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryBar}>
-          {categories.map((item, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.categoryItem}
-              onPress={() => scrollToSection(item)}
-            >
-              <Text style={styles.categoryText}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      <View style={{backgroundColor:THEME_COLOR, height:95}}>
+        {/* Header 部分 */}
+        <View style={styles.header}>
+          <View style={styles.logoPlaceholder} />
+          <Text style={styles.appTitle}>Emo 伸</Text>
+        </View>
+
+        {/* Category Bar 部分 */}
+        <View style={styles.categoryWrapper}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryBar}>
+            {categories.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.categoryItem}
+                onPress={() => scrollToSection(item)}
+              >
+                <Text style={styles.categoryText}>{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
 
       {/* 內容區塊：背景換回 C2B39A */}
@@ -90,14 +92,13 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME_COLOR, 
+    backgroundColor: THEME_COLOR,
   },
   header: {
+    paddingTop:5,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 15,
     backgroundColor: THEME_COLOR,
   },
   logoPlaceholder: {
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   appTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
   },
   categoryWrapper: {
-    paddingBottom: 15,
+    paddingTop:15,
     backgroundColor: THEME_COLOR,
   },
   categoryBar: {
@@ -125,11 +126,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     marginRight: 10,
-    height: 35,
+    height: 30,
     justifyContent: 'center',
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#555',
     fontWeight: '600',
   },
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    width: (width - 45) / 2, 
+    width: (width - 45) / 2,
     height: 110,
     backgroundColor: '#fff',
     borderRadius: 16,
