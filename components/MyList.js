@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Pressable, View, Text, StyleSheet, Button } from 'react-native';
+import { FlatList, Pressable, View, Text, StyleSheet } from 'react-native';
 // 使用正確的來源，避開 VS Code 的刪除線警告
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ListScroll from './ListScroll';
@@ -42,14 +42,7 @@ export default function MyList() {
           <View style={styles.listitem}>
             <Text style={styles.listText}>今日</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                style={{
-                  width: 185,
-                  height: 80,
-                  backgroundColor: '#fff',
-                  borderRadius: 10
-                }}
-              >
+              <Pressable style={styles.card}>
               </Pressable>
             </View>
           </View>
@@ -58,14 +51,7 @@ export default function MyList() {
           <View style={styles.listitem}>
             <Text style={styles.listText}>喜愛</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                style={{
-                  width: 185,
-                  height: 80,
-                  backgroundColor: '#fff',
-                  borderRadius: 10,
-                }}
-              >
+              <Pressable style={styles.card}>
               </Pressable>
             </View>
           </View>
@@ -94,7 +80,7 @@ export default function MyList() {
         {/* 創建清單按鈕 */}
 
         <Pressable
-          onPress={() => { setScene('create');}}
+          onPress={() => { setScene('create'); }}
           style={({ pressed }) => ({
             position: 'absolute',
             right: 20,
@@ -143,21 +129,24 @@ const styles = StyleSheet.create({
   },
   listCon: {
     paddingVertical: 20,
-    gap: 25
   },
   listitem: {
     gap: 10,
+    height: 150
   },
   list: {
     gap: 20,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
+
   },
   headText: {
-    fontSize: 32,
+    fontSize: 28,
+    fontWeight: 'bold'
   },
   listText: {
-    fontSize: 24,
-    paddingLeft: 20
+    fontSize: 18,
+    paddingLeft: 20,
+    fontWeight: 'bold'
   },
   btn: {
     position: 'absolute',
@@ -176,5 +165,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBFD97',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  card: {
+    width: 190,
+    height: 100,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowColor: '#000',
+    shadowRadius: 5,
+    shadowOpacity: 0.1,
+    elevation: 2,
   }
 });

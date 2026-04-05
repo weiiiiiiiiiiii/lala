@@ -50,7 +50,7 @@ export default function Home() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
 
-      <View style={{backgroundColor:THEME_COLOR, height:95}}>
+      <View style={{ backgroundColor: THEME_COLOR, height: 95 }}>
         {/* Header 部分 */}
         <View style={styles.header}>
           <View style={styles.logoPlaceholder} />
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLOR,
   },
   header: {
-    paddingTop:5,
+    paddingTop: 5,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoryWrapper: {
-    paddingTop:15,
+    paddingTop: 15,
     backgroundColor: THEME_COLOR,
   },
   categoryBar: {
@@ -123,10 +123,9 @@ const styles = StyleSheet.create({
   categoryItem: {
     backgroundColor: '#EAE0D5',
     paddingHorizontal: 15,
-    paddingVertical: 6,
     borderRadius: 20,
     marginRight: 10,
-    height: 30,
+    height: 25,
     justifyContent: 'center',
   },
   categoryText: {
@@ -153,18 +152,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
-    width: (width - 45) / 2,
-    height: 110,
-    backgroundColor: '#fff',
-    borderRadius: 16,
     marginBottom: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    // 輕微陰影讓卡片更精緻
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    width: 190,
+    height: 100,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowColor: '#000',
     shadowRadius: 5,
+    shadowOpacity: 0.1,
     elevation: 2,
   },
 });
