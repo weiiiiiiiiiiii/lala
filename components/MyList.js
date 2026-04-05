@@ -42,21 +42,7 @@ export default function MyList() {
           <View style={styles.listitem}>
             <Text style={styles.listText}>今日</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                style={{
-                  width: 185,
-                  height: 80,
-                  backgroundColor: '#fff',
-                  borderRadius: 10,
-                  shadowOffset: {
-                    width: 0,
-                    height: 4
-                  },
-                  shadowColor: '#000',
-                  shadowRadius: 5,
-                  shadowOpacity: 0.1,
-                }}
-              >
+              <Pressable style={styles.card}>
               </Pressable>
             </View>
           </View>
@@ -65,21 +51,7 @@ export default function MyList() {
           <View style={styles.listitem}>
             <Text style={styles.listText}>喜愛</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                style={{
-                  width: 185,
-                  height: 80,
-                  backgroundColor: '#fff',
-                  borderRadius: 10,
-                  shadowOffset: {
-                    width: 0,
-                    height: 4
-                  },
-                  shadowColor: '#000',
-                  shadowRadius: 5,
-                  shadowOpacity: 0.1,
-                }}
-              >
+              <Pressable style={styles.card}>
               </Pressable>
             </View>
           </View>
@@ -160,12 +132,12 @@ const styles = StyleSheet.create({
   },
   listitem: {
     gap: 10,
-    height:150
+    height: 150
   },
   list: {
     gap: 20,
     paddingHorizontal: 20,
-    
+
   },
   headText: {
     fontSize: 28,
@@ -193,5 +165,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBFD97',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  card: {
+    width: 190,
+    height: 100,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    shadowColor: '#000',
+    shadowRadius: 5,
+    shadowOpacity: 0.1,
+    elevation: 2,
   }
 });

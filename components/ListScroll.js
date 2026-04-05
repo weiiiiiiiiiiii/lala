@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 
 export default function ListScroll2({ part }) {
@@ -18,24 +18,29 @@ export default function ListScroll2({ part }) {
                     });
                 }}
 
-                style={{
-                    width: 185,
-                    height: 80,
-                    backgroundColor: '#fff',
-                    borderRadius: 10,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    shadowOffset: {
-                        width: 0,
-                        height: 4
-                    },
-                    shadowColor: '#000',
-                    shadowRadius: 5,
-                    shadowOpacity: 0.1,
-                }}
+                style={styles.card}
             >
                 <Text>{part.name}</Text>
             </Pressable>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    card: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 190,
+        height: 100,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        shadowOffset: {
+            width: 0,
+            height: 4
+        },
+        shadowColor: '#000',
+        shadowRadius: 5,
+        shadowOpacity: 0.1,
+        elevation: 2,
+    }
+})
