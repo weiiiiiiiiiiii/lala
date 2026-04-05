@@ -23,8 +23,15 @@ export default function ListScroll2({ part }) {
                     height: 80,
                     backgroundColor: '#fff',
                     borderRadius: 10,
-                    alignItems:'center',
-                    justifyContent:'center'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowOffset: {
+                        width: 0,
+                        height: 4
+                    },
+                    shadowColor: '#000',
+                    shadowRadius: 5,
+                    shadowOpacity: 0.1,
                 }}
             >
                 <Text>{part.name}</Text>
