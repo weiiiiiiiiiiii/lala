@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// 匯入你的 SVG 組件 (請確保原始檔已移除 stroke 屬性)
+
 import HomeIcon from '../../assets/images/home_icon.svg';
 import ListIcon from '../../assets/images/list_icon.svg';
 import UserIcon from '../../assets/images/user_icon.svg';
@@ -12,9 +12,9 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
   const Colors = {
-    bg: '#A79E8D',       // ✨ 同步主色調
-    active: '#F3C0BA',   // 選中暖粉色
-    inactive: '#9E554D', // 未選中深紅褐
+    bg: '#A79E8D',     
+    active: '#F3C0BA',  
+    inactive: '#9E554D', 
   };
 
   return (
