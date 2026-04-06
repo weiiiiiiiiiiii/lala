@@ -1,15 +1,67 @@
 import React, { useRef } from 'react';
 import {
   StyleSheet, Text, View, ScrollView,
-  TouchableOpacity, Dimensions
+  TouchableOpacity, Dimensions, Image
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢"];
+
+const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢", "其他"];
 const THEME_COLOR = '#A79E8D';
 const CONTENT_BG = '#C2B39A';
+
+const bodyPartImages = {
+  Neck: require('../assets/images/BodyPart/Neck.png'),
+  Biceps: require('../assets/images/BodyPart/Biceps.png'),
+  Calves: require('../assets/images/BodyPart/Calves.png'),
+  Triceps: require('../assets/images/BodyPart/Triceps.png'),
+  Forearms: require('../assets/images/BodyPart/Forearms.png'),
+  Shoulders: require('../assets/images/BodyPart/Shoulders.png'),
+  Pectorals: require('../assets/images/BodyPart/Pectorals.png'),
+  Latissimus: require('../assets/images/BodyPart/Latissimus Dorsi.png'),
+  Lower: require('../assets/images/BodyPart/Lower Back.png'),
+  Gluteus: require('../assets/images/BodyPart/Gluteus Maximus.png'),
+  Piriformis: require('../assets/images/BodyPart/Piriformis.png'),
+  Quads: require('../assets/images/BodyPart/Quads.png'),
+  Hamstrings: require('../assets/images/BodyPart/Hamstrings.png'),
+  Adductors: require('../assets/images/BodyPart/Adductors.png'),
+};
+
+const stretchData = {
+  "常用": [
+    { id: '1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
+    { id: '2', name_zh: '腿後側', name_en: '(Hamstrings)', imageKey: 'Hamstrings' },
+  ],
+  "手臂": [
+    { id: '1-1', name_zh: '二頭肌', name_en: '(Biceps)', imageKey: 'Biceps' },
+    { id: '1-2', name_zh: '三頭肌', name_en: '(Triceps)', imageKey: 'Triceps' },
+    { id: '1-3', name_zh: '前臂', name_en: '(Forearms)', imageKey: 'Forearms' },
+  ],
+  "肩頸": [
+    { id: '2-1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
+    { id: '2-2', name_zh: '三角肌/肩部', name_en: '(Shoulders)', imageKey: 'Shoulders' },
+  ],
+  "胸部": [
+    { id: '3-1', name_zh: '胸大肌', name_en: '(Pectorals)', imageKey: 'Pectorals' },
+  ],
+  "背部與腰部": [
+    { id: '4-1', name_zh: '廣背肌', name_en: '(Latissimus Dorsi)', imageKey: 'Latissimus' },
+    { id: '4-2', name_zh: '下背/腰部', name_en: '(Lower Back)', imageKey: 'Lower' },
+  ],
+  "臀部": [
+    { id: '5-1', name_zh: '臀大肌', name_en: '(Gluteus Maximus)', imageKey: 'Gluteus' },
+    { id: '5-2', name_zh: '梨狀肌', name_en: '(Piriformis)', imageKey: 'Piriformis' },
+  ],
+  "下肢": [
+    { id: '6-1', name_zh: '股四頭肌/大腿前側', name_en: '(Quads)', imageKey: 'Quads' },
+    { id: '6-2', name_zh: '腿後腱/大腿後側', name_en: '(Hamstrings)', imageKey: 'Hamstrings' },
+    { id: '6-3', name_zh: '內收肌/大腿內側', name_en: '(Adductors)', imageKey: 'Adductors' },
+    { id: '6-4', name_zh: '小腿', name_en: '(Calves)', imageKey: 'Calves' },
+  ],
+  "其他": [],
+};
 
 export default function Home() {
   const scrollRef = useRef(null);
@@ -22,9 +74,21 @@ export default function Home() {
     }
   };
 
-  const ExerciseCard = () => (
+  const ExerciseCard = ({ zh, en, image }) => (
     <View style={styles.card}>
-      <Text style={{ color: '#A09484', fontSize: 12 }}>圖片預留位置</Text>
+      <View style={styles.cardTextContainer}>
+        <Text style={styles.partNameZh}>{zh}</Text>
+        {en !== '' && <Text style={styles.partNameEn}>{en}</Text>}
+      </View>
+      <View style={styles.cardImageContainer}>
+        {image && (
+          <Image 
+            source={image} 
+            style={styles.cardImage} 
+            resizeMode="contain" 
+          />
+        )}
+      </View>
     </View>
   );
 
@@ -37,27 +101,28 @@ export default function Home() {
     >
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.cardGrid}>
-        <ExerciseCard />
-        <ExerciseCard />
-        <ExerciseCard />
-        <ExerciseCard />
+        {stretchData[title] && stretchData[title].map((item) => (
+          <ExerciseCard 
+            key={item.id} 
+            zh={item.name_zh} 
+            en={item.name_en} 
+            image={bodyPartImages[item.imageKey]} 
+          />
+        ))}
       </View>
     </View>
   );
 
   return (
-    // 透過 edges 讓背景色延伸到頂部狀態列
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
 
       <View style={{ backgroundColor: THEME_COLOR, height: 95 }}>
-        {/* Header 部分 */}
         <View style={styles.header}>
           <View style={styles.logoPlaceholder} />
           <Text style={styles.appTitle}>Emo 伸</Text>
         </View>
 
-        {/* Category Bar 部分 */}
         <View style={styles.categoryWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryBar}>
             {categories.map((item, index) => (
@@ -73,7 +138,6 @@ export default function Home() {
         </View>
       </View>
 
-      {/* 內容區塊：背景換回 C2B39A */}
       <View style={{ flex: 1, backgroundColor: CONTENT_BG }}>
         <ScrollView ref={scrollRef} style={styles.contentScroll}>
           <View style={{ paddingTop: 20 }}>
@@ -81,7 +145,6 @@ export default function Home() {
               <Section key={index} title={item} />
             ))}
           </View>
-          {/* 底部墊高，避免被 TabBar 擋住最後一個區塊 */}
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
@@ -151,21 +214,52 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+
   card: {
+    flexDirection: 'row', 
     marginBottom: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
     width: 190,
     height: 100,
     backgroundColor: '#fff',
     borderRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 4
-    },
+    paddingVertical: 6,
+    paddingLeft: 10, 
+    paddingRight: 0,
+
+    shadowOffset: { width: 0, height: 4 },
     shadowColor: '#000',
     shadowRadius: 5,
     shadowOpacity: 0.1,
     elevation: 2,
+  },
+
+  cardTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  partNameZh: {
+    fontSize: 12, 
+    fontWeight: '600',
+    color: '#333',
+    lineHeight: 16,
+  },
+
+  partNameEn: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 2,
+  },
+
+  cardImageContainer: {
+    width: 75, 
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
 });
