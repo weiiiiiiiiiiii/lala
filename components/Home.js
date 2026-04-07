@@ -27,12 +27,17 @@ const bodyPartImages = {
   Quads: require('../assets/images/BodyPart/Quads.png'),
   Hamstrings: require('../assets/images/BodyPart/Hamstrings.png'),
   Adductors: require('../assets/images/BodyPart/Adductors.png'),
+  Morning: require('../assets/images/Common/Morning.png'),
+  Sleep: require('../assets/images/Common/Sleep.png'),
+  AfterRun: require('../assets/images/Common/AfterRun.png'),
 };
 
 const stretchData = {
   "常用": [
     { id: '1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
     { id: '2', name_zh: '腿後側', name_en: '(Hamstrings)', imageKey: 'Hamstrings' },
+    { id: '3', name_zh: '早晨伸展', name_en: '', imageKey: 'Morning' },
+    { id: '4', name_zh: '睡前伸展', name_en: '', imageKey: 'Sleep' },
   ],
   "手臂": [
     { id: '1-1', name_zh: '二頭肌', name_en: '(Biceps)', imageKey: 'Biceps' },
@@ -60,7 +65,11 @@ const stretchData = {
     { id: '6-3', name_zh: '內收肌/大腿內側', name_en: '(Adductors)', imageKey: 'Adductors' },
     { id: '6-4', name_zh: '小腿', name_en: '(Calves)', imageKey: 'Calves' },
   ],
-  "其他": [],
+  "其他": [
+    { id: '7-1', name_zh: '跑步後拉伸', name_en: '', imageKey: 'AfterRun' },
+    { id: '7-2', name_zh: '早晨伸展', name_en: '', imageKey: 'Morning' },
+    { id: '7-3', name_zh: '睡前伸展', name_en: '', imageKey: 'Sleep' },
+  ],
 };
 
 export default function Home() {
