@@ -57,7 +57,7 @@ export default function CreateList({ onBack }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#A79E8D', // 確保狀態列填色正確
+    backgroundColor: '#A79E8D', 
   },
   container: {
     flex: 1,
