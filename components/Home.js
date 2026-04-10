@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router'; // 引入路由導航
 
 const { width } = Dimensions.get('window');
 
@@ -12,6 +13,7 @@ const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "
 const THEME_COLOR = '#A79E8D';
 const CONTENT_BG = '#C2B39A';
 
+// --- 圖片對應表 ---
 const bodyPartImages = {
   Neck: require('../assets/images/BodyPart/Neck.png'),
   Biceps: require('../assets/images/BodyPart/Biceps.png'),
@@ -27,11 +29,13 @@ const bodyPartImages = {
   Quads: require('../assets/images/BodyPart/Quads.png'),
   Hamstrings: require('../assets/images/BodyPart/Hamstrings.png'),
   Adductors: require('../assets/images/BodyPart/Adductors.png'),
+  // 情境圖片
   Morning: require('../assets/images/Common/Morning.png'),
   Sleep: require('../assets/images/Common/Sleep.png'),
   AfterRun: require('../assets/images/Common/AfterRun.png'),
 };
 
+// --- 資料結構 ---
 const stretchData = {
   "常用": [
     { id: '1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
@@ -52,7 +56,7 @@ const stretchData = {
     { id: '3-1', name_zh: '胸大肌', name_en: '(Pectorals)', imageKey: 'Pectorals' },
   ],
   "背部與腰部": [
-    { id: '4-1', name_zh: '廣背肌', name_en: '(Latissimus Dorsi)', imageKey: 'Latissimus' },
+    { id: '4-1', name_zh: '闊背肌', name_en: '(Latissimus Dorsi)', imageKey: 'Latissimus' },
     { id: '4-2', name_zh: '下背/腰部', name_en: '(Lower Back)', imageKey: 'Lower' },
   ],
   "臀部": [
@@ -73,6 +77,7 @@ const stretchData = {
 };
 
 export default function Home() {
+  const router = useRouter(); // 初始化路由
   const scrollRef = useRef(null);
   const sectionLayouts = useRef({});
 
@@ -83,8 +88,15 @@ export default function Home() {
     }
   };
 
+  // --- 修正後的 ExerciseCard：加入跳轉邏輯 ---
   const ExerciseCard = ({ zh, en, image }) => (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => router.push({
+        pathname: '/exerciseDetail', // 對應 app/exerciseDetail.js
+        params: { name_zh: zh }      // 傳遞標題參數
+      })}
+    >
       <View style={styles.cardTextContainer}>
         <Text style={styles.partNameZh}>{zh}</Text>
         {en !== '' && <Text style={styles.partNameEn}>{en}</Text>}
@@ -98,7 +110,7 @@ export default function Home() {
           />
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const Section = ({ title }) => (
@@ -126,6 +138,7 @@ export default function Home() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
 
+      {/* Header 與 分類列 */}
       <View style={{ backgroundColor: THEME_COLOR, height: 95 }}>
         <View style={styles.header}>
           <View style={styles.logoPlaceholder} />
@@ -147,6 +160,7 @@ export default function Home() {
         </View>
       </View>
 
+      {/* 內容區塊 */}
       <View style={{ flex: 1, backgroundColor: CONTENT_BG }}>
         <ScrollView ref={scrollRef} style={styles.contentScroll}>
           <View style={{ paddingTop: 20 }}>
@@ -223,7 +237,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-
   card: {
     flexDirection: 'row', 
     marginBottom: 15,
@@ -234,39 +247,33 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingLeft: 10, 
     paddingRight: 0,
-
     shadowOffset: { width: 0, height: 4 },
     shadowColor: '#000',
     shadowRadius: 5,
     shadowOpacity: 0.1,
     elevation: 2,
   },
-
   cardTextContainer: {
     flex: 1,
     justifyContent: 'center',
   },
-
   partNameZh: {
     fontSize: 12, 
     fontWeight: '600',
     color: '#333',
     lineHeight: 16,
   },
-
   partNameEn: {
     fontSize: 10,
     color: '#666',
     marginTop: 2,
   },
-
   cardImageContainer: {
     width: 75, 
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   cardImage: {
     width: '100%',
     height: '100%',
