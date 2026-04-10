@@ -1,8 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import useListStore from '../store/useListStore';
+import { useRouter } from 'expo-router';
 
 export default function CreateList({ onBack }) {
+  const [listname,setListname]=useState('');
+  const addList = useListStore((state)=>state.addList);
+  const handleCreate=()=>{
+    if(listname.trim()==='')
+    {
+      Alert.alert('提示', '請輸入清單名稱');
+      return;
+    }
+    addList(listname);
+    router.push('/emptyList');
+  }
+
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
@@ -19,6 +35,8 @@ export default function CreateList({ onBack }) {
               style={styles.input}
               placeholder="輸入名字..."
               placeholderTextColor="#999"
+              value={listname}
+              onChangeText={setListname}
             />
           </View>
 
@@ -43,7 +61,7 @@ export default function CreateList({ onBack }) {
 
             <Pressable 
               style={[styles.button, styles.createButton]} 
-              onPress={onBack}
+              onPress={handleCreate}
             >
               <Text style={styles.buttonText}>建立</Text>
             </Pressable>

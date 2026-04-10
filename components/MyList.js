@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, View, Text, StyleSheet } from 'react-native';
+import { FlatList, Pressable, View, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router'; // 引入路由
 import ListScroll from './ListScroll';
 import PlusIcon from '../assets/images/Plus.svg';
+import useListStore from '../store/useListStore';
 
 const recommend = [
   { id: 1, name: '手部' },
@@ -18,6 +19,20 @@ const recommend = [
 export default function MyList() {
   const router = useRouter();
   const [recommendItem] = useState(recommend);
+
+  const mylists = useListStore((state) => state.lists);
+
+  const removeList = useListStore((state) => state.removeList);
+  const handlongPress = (id, title) => {
+    Alert.alert(
+      '刪除清單',
+      `確定要刪除此清單嗎`,
+      [
+        { text: '取消', style: 'cancel' },
+        { text: '刪除', style: 'destructive', onPress: () => removeList(id) },
+      ]
+    )
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#A79E8D' }]} edges={['top']}>
@@ -61,6 +76,28 @@ export default function MyList() {
           {/* 我的 */}
           <View style={styles.listitem}>
             <Text style={styles.listText}>我的</Text>
+            {mylists.length === 0 ? (
+              <View>
+                <Text style={styles.alertText}>點擊下方 + 建立清單</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={mylists}
+                renderItem={({ item }) => (
+                  <ListScroll
+                    part={{
+                      id: item.id,
+                      name: item.title
+                    }}
+                    onLongPress={() => handlongPress(item.id, item.title)}
+                  />
+                )}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.list}
+              />
+            )}
           </View>
         </View>
 
@@ -118,5 +155,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+  },
+  alertText:{
+    fontSize: 14, paddingLeft: 20
   }
 });
