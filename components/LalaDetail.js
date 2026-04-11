@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -6,7 +6,7 @@ import LoveIcon from '../assets/images/LoveIcon.svg';
 import LoveIconActive from '../assets/images/LoveIcon_active.svg';
 
 const { width } = Dimensions.get('window');
-const THEME_COLOR = '#A79E8D'; 
+const THEME_COLOR = '#A79E8D';
 
 
 const initialActionList = [
@@ -21,8 +21,8 @@ export default function LalaDetail({ title, onBack }) {
 
   //處理點擊愛心的函式
   const handleToggleFavorite = (id, currentFavoriteState) => {
-    setActionList(prevList => 
-      prevList.map(item => 
+    setActionList(prevList =>
+      prevList.map(item =>
         item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
       )
     );
@@ -46,7 +46,7 @@ export default function LalaDetail({ title, onBack }) {
             <TurnBackIcon width={24} height={24} />
           </Pressable>
           <Text style={styles.headText}>{title}</Text>
-          <View style={{ width: 40 }} /> 
+          <View style={{ width: 40 }} />
         </View>
       </View>
 
@@ -55,8 +55,8 @@ export default function LalaDetail({ title, onBack }) {
           {actionList.map((item) => (
             <View key={item.id} style={styles.actionListItem}>
               <View style={styles.infoArea}>
-                <Pressable 
-                  style={styles.heartBtn} 
+                <Pressable
+                  style={styles.heartBtn}
                   onPress={() => handleToggleFavorite(item.id, item.isFavorite)}
                 >
                   {/* 根據 isFavorite 狀態顯示不同 SVG */}
@@ -66,7 +66,7 @@ export default function LalaDetail({ title, onBack }) {
                     <LoveIcon width={24} height={24} />
                   )}
                 </Pressable>
-                
+
                 <View style={styles.textGroup}>
                   <Text style={styles.actionTitle}>{item.name}</Text>
                   <Text style={styles.actionDesc}>{item.detail}</Text>
@@ -84,7 +84,7 @@ export default function LalaDetail({ title, onBack }) {
         </ScrollView>
 
         <View style={styles.bottomContainer}>
-          <Pressable 
+          <Pressable
             style={({ pressed }) => [
               styles.startBtn,
               { opacity: pressed ? 0.9 : 1 }
@@ -105,28 +105,29 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     backgroundColor: THEME_COLOR,
-    height: 95, 
+    height: 95,
     justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   backButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   headText: {
-    fontSize: 28, 
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#000',
   },
   mainContainer: {
     flex: 1,
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
   },
   scrollContent: {
     paddingVertical: 10,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   },
   heartBtn: {
     marginBottom: 10,
-    width: 30, 
+    width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   startBtn: {
     width: width * 0.85,
     height: 80,
-    backgroundColor: '#B2F6B1', 
+    backgroundColor: '#B2F6B1',
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
