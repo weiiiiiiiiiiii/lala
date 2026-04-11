@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 
-export default function ListScroll2({ part }) {
+export default function ListScroll2({ part, onLongPress }) {
     const router = useRouter();
 
     return (
@@ -10,14 +10,14 @@ export default function ListScroll2({ part }) {
             <Pressable
                 onPress={() => {
                     router.push({
-                        pathname: `/lala/${part.id}`,
+                        pathname:'/emptyList',
                         params: {
                             name: part.name,
 
                         }
                     });
                 }}
-
+                onLongPress={onLongPress}
                 style={styles.card}
             >
                 <Text>{part.name}</Text>
