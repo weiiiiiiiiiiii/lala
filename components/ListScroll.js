@@ -10,7 +10,7 @@ export default function ListScroll2({ part, onLongPress }) {
             <Pressable
                 onPress={() => {
                     router.push({
-                        pathname: `/lala/${part.id}`,
+                        pathname:'/emptyList',
                         params: {
                             name: part.name,
 

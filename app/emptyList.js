@@ -9,7 +9,7 @@ export default function EmptyListRoute(){
       return (
         <EmptyList 
           title={params.name_zh || '拉伸動作'} 
-          onBack={() => router.back()} 
+          onBack={() => router.back('/list')} 
         />
       );
 }

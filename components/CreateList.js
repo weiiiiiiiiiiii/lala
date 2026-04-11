@@ -5,16 +5,19 @@ import useListStore from '../store/useListStore';
 import { useRouter } from 'expo-router';
 
 export default function CreateList({ onBack }) {
-  const [listname,setListname]=useState('');
-  const addList = useListStore((state)=>state.addList);
-  const handleCreate=()=>{
-    if(listname.trim()==='')
-    {
+  const [listname, setListname] = useState('');
+  const addList = useListStore((state) => state.addList);
+  const handleCreate = () => {
+    if (listname.trim() === '') {
       Alert.alert('提示', '請輸入清單名稱');
       return;
     }
+    const newId = Date.now();
     addList(listname);
-    router.push('/emptyList');
+    router.replace({
+      pathname: '/emptyList',
+      params: { id: newId, name: listname }
+    });
   }
 
   const router = useRouter();
@@ -52,15 +55,15 @@ export default function CreateList({ onBack }) {
 
           {/* 按鈕區域 */}
           <View style={styles.buttonContainer}>
-            <Pressable 
-              style={[styles.button, styles.cancelButton]} 
+            <Pressable
+              style={[styles.button, styles.cancelButton]}
               onPress={onBack}
             >
               <Text style={styles.buttonText}>取消</Text>
             </Pressable>
 
-            <Pressable 
-              style={[styles.button, styles.createButton]} 
+            <Pressable
+              style={[styles.button, styles.createButton]}
               onPress={handleCreate}
             >
               <Text style={styles.buttonText}>建立</Text>
@@ -75,11 +78,11 @@ export default function CreateList({ onBack }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#A79E8D', 
+    backgroundColor: '#A79E8D',
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
   },
   header: {
     height: 95,

@@ -78,7 +78,7 @@ export default function MyList() {
             <Text style={styles.listText}>我的</Text>
             {mylists.length === 0 ? (
               <View>
-                <Text style={styles.alertText}>點擊下方 + 建立清單</Text>
+                <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
               </View>
             ) : (
               <FlatList
@@ -87,7 +87,8 @@ export default function MyList() {
                   <ListScroll
                     part={{
                       id: item.id,
-                      name: item.title
+                      name: item.title,
+                      pathname: '/emptyList'
                     }}
                     onLongPress={() => handlongPress(item.id, item.title)}
                   />
