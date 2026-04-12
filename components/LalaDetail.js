@@ -6,7 +6,7 @@ import TurnBackIcon from '../assets/images/TurnBack.svg';
 import LoveIcon from '../assets/images/LoveIcon.svg';
 import LoveIconActive from '../assets/images/LoveIcon_active.svg';
 // 匯入剛才建立的資料檔案
-import { ALL_STRETCHES } from '../components/stretchData';
+import { ALL_STRETCHES } from './stretchData';
 
 const { width } = Dimensions.get('window');
 const THEME_COLOR = '#A79E8D';

@@ -24,14 +24,14 @@ export const ALL_STRETCHES = {
     { id: 'p1', name: '扶牆擴胸', detail: '雙手扶牆壁，身體前傾', time: '00:30', img: require('../assets/images/PartStretch/Pectorals/1.png') },
   ],
   "闊背肌": [
-    { id: 'l1', name: '貓式伸展', detail: '四足跪姿，拱背向上', time: '00:30', img: require('../assets/images/PartStretch/Latissimus Dorsi/1.png') },
+    { id: 'l1', name: '貓式伸展', detail: '四足跪姿，拱背向上', time: '00:30', img: require('../assets/images/PartStretch/LatissimusDorsi/1.png') },
   ],
   "下背/腰部": [
-    { id: 'lb1', name: '抱膝至胸', detail: '仰臥，雙手抱住膝蓋靠向胸口', time: '00:30', img: require('../assets/images/PartStretch/Lower Back/2.png') },
-    { id: 'lb2', name: '坐姿轉體', detail: '坐著雙腳交叉，身體向後轉', time: '00:30', img: require('../assets/images/PartStretch/Lower Back/1.png') },
+    { id: 'lb1', name: '抱膝至胸', detail: '仰臥，雙手抱住膝蓋靠向胸口', time: '00:30', img: require('../assets/images/PartStretch/LowerBack/2.png') },
+    { id: 'lb2', name: '坐姿轉體', detail: '坐著雙腳交叉，身體向後轉', time: '00:30', img: require('../assets/images/PartStretch/LowerBack/1.png') },
   ],
   "臀大肌": [
-    { id: 'g1', name: '鴿式', detail: '單腿在前彎曲，另一腿向後伸直', time: '00:30', img: require('../assets/images/PartStretch/Gluteus Maximus/1.png') },
+    { id: 'g1', name: '鴿式', detail: '單腿在前彎曲，另一腿向後伸直', time: '00:30', img: require('../assets/images/PartStretch/GluteusMaximus/1.png') },
   ],
   "梨狀肌": [
     // { id: 'pi1', name: '仰臥數字 4 拉伸', detail: '一腳腳踝放在另一腳膝蓋上，向胸口拉', time: '00:30', img: require('../assets/images/PartStretch/Piriformis1.png') },
