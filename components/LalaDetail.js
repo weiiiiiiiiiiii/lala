@@ -1,25 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// 匯入你的自訂 SVG
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import LoveIcon from '../assets/images/LoveIcon.svg';
 import LoveIconActive from '../assets/images/LoveIcon_active.svg';
+// 匯入剛才建立的資料檔案
+import { ALL_STRETCHES } from '../components/stretchData';
 
 const { width } = Dimensions.get('window');
 const THEME_COLOR = '#A79E8D';
 
-
-const initialActionList = [
-  { id: '1', name: '靠牆轉身拉伸', time: '00:30', detail: '單手撐牆，身體向反方向轉', isFavorite: false },
-  { id: '2', name: '背手下壓', time: '00:30', detail: '雙手在背後互扣，手心向下延伸', isFavorite: false },
-  { id: '3', name: '手臂外旋拉伸', time: '00:30', detail: '預留動作描述空間...', isFavorite: false },
-];
-
 export default function LalaDetail({ title, onBack }) {
-  // 使用 useState 管理動作列表狀態，以便控制愛心
-  const [actionList, setActionList] = useState(initialActionList);
+  // 使用 useState 管理動作列表狀態
+  const [actionList, setActionList] = useState([]);
 
-  //處理點擊愛心的函式
+  // 當組件掛載或 title 改變時，根據 title 抓取正確的動作清單
+  useEffect(() => {
+    const list = ALL_STRETCHES[title] || [];
+    // 初始化時加上 isFavorite 欄位
+    const listWithState = list.map(item => ({ ...item, isFavorite: false }));
+    setActionList(listWithState);
+  }, [title]);
+
+  // 處理點擊愛心的函式
   const handleToggleFavorite = (id, currentFavoriteState) => {
     setActionList(prevList =>
       prevList.map(item =>
@@ -27,13 +31,10 @@ export default function LalaDetail({ title, onBack }) {
       )
     );
 
-    // 預留功能空間：這裡是之後呼叫後端 API 或更新本地喜愛清單資料的地方
+    // 預留功能空間
     if (!currentFavoriteState) {
-      // 這裡是原本沒有喜愛，點擊後「加入喜愛」的邏輯
       // console.log(`動作 ID ${id} 已加入喜愛清單`);
-      // Alert.alert('提示', '已加入喜愛動作'); // 可以在這裡加上系統提示，目前先註解掉
     } else {
-      // 這裡是原本已喜愛，點擊後「取消喜愛」的邏輯
       // console.log(`動作 ID ${id} 已移除喜愛清單`);
     }
   };
@@ -51,7 +52,7 @@ export default function LalaDetail({ title, onBack }) {
       </View>
 
       <View style={styles.mainContainer}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {actionList.map((item) => (
             <View key={item.id} style={styles.actionListItem}>
               <View style={styles.infoArea}>
@@ -59,7 +60,6 @@ export default function LalaDetail({ title, onBack }) {
                   style={styles.heartBtn}
                   onPress={() => handleToggleFavorite(item.id, item.isFavorite)}
                 >
-                  {/* 根據 isFavorite 狀態顯示不同 SVG */}
                   {item.isFavorite ? (
                     <LoveIconActive width={24} height={24} />
                   ) : (
@@ -75,8 +75,13 @@ export default function LalaDetail({ title, onBack }) {
                 <Text style={styles.timeText}>{item.time}</Text>
               </View>
 
-              <View style={styles.imagePlaceholder}>
-                <Text style={styles.placeholderText}>圖片預留位置</Text>
+              <View style={styles.imageContainer}>
+                {/* 渲染動作照片 */}
+                <Image 
+                  source={item.img} 
+                  style={styles.actionImage} 
+                  resizeMode="cover" 
+                />
               </View>
             </View>
           ))}
@@ -169,18 +174,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  imagePlaceholder: {
+  imageContainer: {
     width: 110,
     height: 110,
     backgroundColor: '#D9D9D9',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 15,
+    overflow: 'hidden', // 確保圖片圓角或邊界正確
   },
-  placeholderText: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+  actionImage: {
+    width: '100%',
+    height: '100%',
   },
   bottomContainer: {
     position: 'absolute',
