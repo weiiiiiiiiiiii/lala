@@ -39,7 +39,7 @@ const bodyPartImages = {
 const stretchData = {
   "常用": [
     { id: '1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
-    { id: '2', name_zh: '腿後側', name_en: '(Hamstrings)', imageKey: 'Hamstrings' },
+    { id: '2', name_zh: '腿後腱/大腿後側', name_en: '(Hamstrings)', imageKey: 'Hamstrings' },
     { id: '3', name_zh: '早晨伸展', name_en: '', imageKey: 'Morning' },
     { id: '4', name_zh: '睡前伸展', name_en: '', imageKey: 'Sleep' },
   ],
