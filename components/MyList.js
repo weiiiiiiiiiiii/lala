@@ -19,6 +19,8 @@ const recommend = [
 export default function MyList() {
   const router = useRouter();
   const [recommendItem] = useState(recommend);
+  // 取得喜愛清單
+  const favorites = useListStore((state) => state.favorites);
 
   const mylists = useListStore((state) => state.lists);
 
@@ -52,11 +54,23 @@ export default function MyList() {
             </View>
           </View>
 
-          {/* 喜愛 */}
+          {/* 喜愛清單*/}
           <View style={styles.listitem}>
             <Text style={styles.listText}>喜愛</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable style={styles.card} />
+              <Pressable
+                style={styles.card}
+                onPress={() => {
+                  // 跳轉時告訴 LalaDetail 這是喜愛清單
+                  router.push({
+                    pathname: '/exerciseDetail',
+                    params: { name_zh: '喜愛清單', mode: 'favorites' }
+                  });
+                }}
+              >
+                {/* 之後說不定可以標記數量 */}
+                {/* <Text style={styles.cardCountText}>{favorites.length} 個動作</Text> */}
+              </Pressable>
             </View>
           </View>
 
@@ -157,7 +171,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
   },
-  alertText:{
+  alertText: {
     fontSize: 14, paddingLeft: 20
   }
 });

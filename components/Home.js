@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; // 引入路由導航
+import { useRouter } from 'expo-router'; 
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +13,7 @@ const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "
 const THEME_COLOR = '#A79E8D';
 const CONTENT_BG = '#C2B39A';
 
-// --- 圖片對應表 ---
+
 const bodyPartImages = {
   Neck: require('../assets/images/BodyPart/Neck.png'),
   Biceps: require('../assets/images/BodyPart/Biceps.png'),
@@ -29,7 +29,7 @@ const bodyPartImages = {
   Quads: require('../assets/images/BodyPart/Quads.png'),
   Hamstrings: require('../assets/images/BodyPart/Hamstrings.png'),
   Adductors: require('../assets/images/BodyPart/Adductors.png'),
-  // 情境圖片
+  
   Morning: require('../assets/images/Common/Morning.png'),
   Sleep: require('../assets/images/Common/Sleep.png'),
   AfterRun: require('../assets/images/Common/AfterRun.png'),
@@ -77,7 +77,7 @@ const stretchData = {
 };
 
 export default function Home() {
-  const router = useRouter(); // 初始化路由
+  const router = useRouter(); 
   const scrollRef = useRef(null);
   const sectionLayouts = useRef({});
 
