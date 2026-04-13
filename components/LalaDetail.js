@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import LoveIcon from '../assets/images/LoveIcon.svg';
@@ -7,9 +7,7 @@ import LoveIconActive from '../assets/images/LoveIcon_active.svg';
 import PlusTimeIcon from '../assets/images/PlusTime.svg';
 import MinusTimeIcon from '../assets/images/MinusTime.svg';
 import useListStore from '../store/useListStore';
-import { Alert } from 'react-native';
 import { ALL_STRETCHES } from './stretchData';
-
 
 const { width } = Dimensions.get('window');
 const THEME_COLOR = '#A79E8D';
@@ -27,7 +25,6 @@ export default function LalaDetail({ title, onBack }) {
       const listWithState = favorites.map(item => ({ ...item, isFavorite: true }));
       setActionList(listWithState);
     } else {
-      
       const list = ALL_STRETCHES[title] || [];
       const listWithState = list.map(item => ({
         ...item,
@@ -37,10 +34,8 @@ export default function LalaDetail({ title, onBack }) {
     }
   }, [title, favorites]);
 
-  //點擊愛心
   const handleToggleFavorite = (item) => {
     const result = toggleFavoriteStore(item);
-
     if (result === 'added') {
       Alert.alert('提示', '已加入喜愛清單');
     } else {
@@ -48,7 +43,6 @@ export default function LalaDetail({ title, onBack }) {
     }
   };
 
-  // 判斷是否在清單中
   const isItemFavorite = (id) => favorites && favorites.some(fav => fav.id === id);
 
   const handleOpenModal = (item) => {
@@ -89,7 +83,7 @@ export default function LalaDetail({ title, onBack }) {
                   style={styles.heartBtn}
                   onPress={(e) => {
                     e.stopPropagation();
-                    handleToggleFavorite(item); // 傳入整個 item
+                    handleToggleFavorite(item);
                   }}
                 >
                   {isItemFavorite(item.id) ? (
@@ -134,7 +128,6 @@ export default function LalaDetail({ title, onBack }) {
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
 
-            {/* 1. 標題改為動作名稱 */}
             <Text style={styles.modalHeaderTitle}>{selectedAction?.name || '動作詳情'}</Text>
 
             <View style={styles.modalImageWrapper}>
@@ -154,21 +147,22 @@ export default function LalaDetail({ title, onBack }) {
               </Pressable>
             </View>
 
-            {/* 2. 動作說明與注意事項區 */}
-            <View style={styles.detailsSection}>
+            {/* --- 動態讀取動作說明與注意事項 --- */}
+            <ScrollView style={styles.detailsSection} showsVerticalScrollIndicator={false}>
               <View style={styles.noteArea}>
                 <Text style={styles.noteTitle}>動作說明：</Text>
-                <Text style={styles.noteContent}>{selectedAction?.detail}</Text>
+                <Text style={styles.noteContent}>
+                  {selectedAction?.steps || "暫無詳細步驟說明。"}
+                </Text>
               </View>
 
               <View style={[styles.noteArea, { marginTop: 15 }]}>
                 <Text style={styles.noteTitle}>注意事項：</Text>
                 <Text style={styles.noteContent}>
-                  {/* 未來可在 stretchData 增加 note 欄位，目前先放預設提示 */}
-                  保持呼吸平穩，不要過度勉強拉伸，若感到刺痛請立即停止。
+                  {selectedAction?.notice || "保持呼吸平穩，不要過度勉強拉伸，若感到刺痛請立即停止。"}
                 </Text>
               </View>
-            </View>
+            </ScrollView>
 
             <Pressable style={styles.addSubmitBtn} onPress={() => setModalVisible(false)}>
               <Text style={styles.addSubmitText}>加入清單</Text>
@@ -181,7 +175,6 @@ export default function LalaDetail({ title, onBack }) {
 }
 
 const styles = StyleSheet.create({
-  // ... 原本樣式維持不變 ...
   safeArea: { flex: 1, backgroundColor: THEME_COLOR },
   headerWrapper: { backgroundColor: THEME_COLOR, height: 95, justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15 },
@@ -213,9 +206,8 @@ const styles = StyleSheet.create({
   },
   startBtnText: { fontSize: 32, fontWeight: 'bold', color: '#000', letterSpacing: 2 },
 
-  // Modal 樣式修正
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: width * 0.85, backgroundColor: '#fff', borderRadius: 25, padding: 25, alignItems: 'center' },
+  modalContent: { width: width * 0.85, maxHeight: '80%', backgroundColor: '#fff', borderRadius: 25, padding: 25, alignItems: 'center' },
   closeBtn: { position: 'absolute', top: 20, left: 20 },
   closeText: { fontSize: 20, color: '#333' },
   modalHeaderTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, marginTop: 10, textAlign: 'center' },
@@ -224,10 +216,13 @@ const styles = StyleSheet.create({
   timerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   timerIconBtn: { padding: 5 },
   timerDisplay: { fontSize: 28, fontWeight: 'bold', marginHorizontal: 25 },
-  detailsSection: { width: '100%', marginBottom: 25 },
+  
+  // 這裡加了 ScrollView 容器樣式
+  detailsSection: { width: '100%', marginBottom: 20 },
   noteArea: { width: '100%' },
   noteTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 5 },
-  noteContent: { fontSize: 14, color: '#666', lineHeight: 20 },
+  noteContent: { fontSize: 14, color: '#666', lineHeight: 22 },
+  
   addSubmitBtn: { width: '100%', height: 55, backgroundColor: '#D9D9D9', borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   addSubmitText: { fontSize: 22, fontWeight: 'bold', color: '#000' },
 });

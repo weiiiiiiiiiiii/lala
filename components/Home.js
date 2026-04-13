@@ -12,7 +12,7 @@ const { width } = Dimensions.get('window');
 const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢", "其他"];
 const THEME_COLOR = '#A79E8D';
 const CONTENT_BG = '#C2B39A';
-
+const LOGO_IMAGE = require('../assets/images/Logo/Logo_none.png');
 
 const bodyPartImages = {
   Neck: require('../assets/images/BodyPart/Neck.png'),
@@ -35,7 +35,6 @@ const bodyPartImages = {
   AfterRun: require('../assets/images/Common/AfterRun.png'),
 };
 
-// --- 資料結構 ---
 const stretchData = {
   "常用": [
     { id: '1', name_zh: '頸部', name_en: '(Neck)', imageKey: 'Neck' },
@@ -88,13 +87,12 @@ export default function Home() {
     }
   };
 
-  // --- 修正後的 ExerciseCard：加入跳轉邏輯 ---
   const ExerciseCard = ({ zh, en, image }) => (
     <TouchableOpacity 
       style={styles.card}
       onPress={() => router.push({
-        pathname: '/exerciseDetail', // 對應 app/exerciseDetail.js
-        params: { name_zh: zh }      // 傳遞標題參數
+        pathname: '/exerciseDetail',
+        params: { name_zh: zh }
       })}
     >
       <View style={styles.cardTextContainer}>
@@ -138,10 +136,10 @@ export default function Home() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
 
-      {/* Header 與 分類列 */}
       <View style={{ backgroundColor: THEME_COLOR, height: 95 }}>
         <View style={styles.header}>
-          <View style={styles.logoPlaceholder} />
+          {/* 將原本的 View 替換為 Image */}
+          <Image source={LOGO_IMAGE} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.appTitle}>Emo 伸</Text>
         </View>
 
@@ -160,7 +158,6 @@ export default function Home() {
         </View>
       </View>
 
-      {/* 內容區塊 */}
       <View style={{ flex: 1, backgroundColor: CONTENT_BG }}>
         <ScrollView ref={scrollRef} style={styles.contentScroll}>
           <View style={{ paddingTop: 20 }}>
@@ -187,11 +184,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: THEME_COLOR,
   },
-  logoPlaceholder: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#fff',
+  // 替換原本的 logoPlaceholder 樣式
+  logoImage: {
+    width: 35,
+    height: 35,
     marginRight: 10,
   },
   appTitle: {
