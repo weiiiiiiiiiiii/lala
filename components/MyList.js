@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, View, Text, StyleSheet, Alert } from 'react-native';
+import { FlatList, Pressable, View, Text, StyleSheet, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router'; // 引入路由
 import ListScroll from './ListScroll';
 import PlusIcon from '../assets/images/Plus.svg';
 import useListStore from '../store/useListStore';
+import { push } from 'expo-router/build/global-state/routing';
 
 const recommend = [
   { id: 1, name: '手部' },
@@ -50,7 +51,20 @@ export default function MyList() {
           <View style={styles.listitem}>
             <Text style={styles.listText}>今日</Text>
             <View style={{ paddingHorizontal: 20 }}>
-              <Pressable style={styles.card} />
+              <Pressable
+                onPress={()=>{
+                  router.push({
+                        pathname:'/emptyList',
+                        params: {
+                            name: '今日清單',
+
+                        }
+                    });
+                }}
+                style={styles.card}
+              >
+                <Image source={require('../assets/images/ListPic/Today.png')} style={{ width: 190, height: 100, borderRadius: 10, }} />
+              </Pressable>
             </View>
           </View>
 
@@ -68,6 +82,7 @@ export default function MyList() {
                   });
                 }}
               >
+                <Image source={require('../assets/images/ListPic/Favorite.png')} style={{ width: 190, height: 100, borderRadius: 10, }} />
                 {/* 之後說不定可以標記數量 */}
                 {/* <Text style={styles.cardCountText}>{favorites.length} 個動作</Text> */}
               </Pressable>
