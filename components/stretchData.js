@@ -55,7 +55,7 @@ export const ALL_STRETCHES = {
       detail: '跪姿，手掌反向撐地向後坐', 
       time: '00:30', 
       img: require('../assets/images/PartStretch/Forearms/2.png'),
-      steps: "1. 雙手撐地且手心朝上，指尖朝向自己的膝蓋。\n2. 臀部慢慢向後坐，直到前臂感到拉伸。\n3. 保持手掌平貼地面。",
+      steps: "1. 雙手撐地且手心朝下，指尖朝向自己的膝蓋。\n2. 臀部慢慢向後坐，直到前臂感到拉伸。\n3. 保持手掌平貼地面。",
       notice: "手肘微彎避免鎖死，若手腕感到刺痛應立即停止並調整角度。"
     },
   ],
@@ -95,7 +95,7 @@ export const ALL_STRETCHES = {
       detail: '雙手在背後互抓向上抬', 
       time: '00:30', 
       img: require('../assets/images/PartStretch/Shoulders/2.png'),
-      steps: "1. 在背後將雙手交疊握住。\n2. 將肩胛骨往內夾，並慢慢將雙手向上抬起。\n3. 挺胸，保持呼吸。",
+      steps: "1. 在背後將雙手交疊握住。\n2. 將肩胛骨往內夾，並慢慢將雙手向上抬起。\n3. 挺胸，保持呼吸。\n4. 換邊重複動作。",
       notice: "量力而為，不要強迫抬得太高，避免肩膀前方受傷。"
     },
   ],
@@ -117,7 +117,7 @@ export const ALL_STRETCHES = {
       detail: '四足跪姿，拱背向上', 
       time: '00:30', 
       img: require('../assets/images/PartStretch/LatissimusDorsi/1.png'),
-      steps: "1. 四足跪姿，雙手位於肩膀正下方。\n2. 吸氣時放鬆肚子，吐氣時用力將背部向上拱起。\n3. 頭部自然垂下，看向腹部。",
+      steps: "1. 四足跪姿，雙手朝前方延伸。\n2. 吸氣時放鬆肚子，吐氣時用力將背部向上拱起。\n3. 頭部自然垂下，看向腹部。",
       notice: "動作隨著呼吸頻率進行，感受脊椎每一節的活動。"
     },
   ],
@@ -159,7 +159,7 @@ export const ALL_STRETCHES = {
       detail: '手抓腳踝往臀部拉', 
       time: '00:30', 
       img: require('../assets/images/PartStretch/Quads/1.png'),
-      steps: "1. 單腳站立，另一手扶牆保持平衡。\n2. 後勾腳並用同側手抓住腳踝。\n3. 輕輕將腳跟拉向臀部，膝蓋併攏並向下指。",
+      steps: "1. 單腳站立，另一手扶牆保持平衡。\n2. 後勾腳並用同側手抓住腳踝。\n3. 輕輕將腳跟拉向臀部，膝蓋併攏並向下指。\n4. 換邊重複動作。",
       notice: "不要過度彎腰或翹屁股，保持核心收緊。"
     },
     { 
@@ -168,7 +168,7 @@ export const ALL_STRETCHES = {
       detail: '側躺，手抓上方腳踝向後拉', 
       time: '00:30', 
       img: require('../assets/images/PartStretch/Quads/2.png'),
-      steps: "1. 側臥在地，身體呈一直線。\n2. 抓住上方腳的腳踝，往臀部方向拉。\n3. 下方腳微彎提供穩定性。\n4. 換邊重複動作",
+      steps: "1. 側臥在地，身體呈一直線。\n2. 抓住上方腳的腳踝，往臀部方向拉。\n3. 下方腳微彎提供穩定性。\n4. 換邊重複動作。",
       notice: "確保上半身不動，只移動大腿部位進行拉伸。"
     },
   ],
