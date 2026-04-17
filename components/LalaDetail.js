@@ -55,7 +55,7 @@ export default function LalaDetail({ title, onBack }) {
   // 檢查特定動作是否為喜愛狀態（用於渲染圖示）
   const isItemFavorite = (id) => favorites.some(fav => fav.id === id);
 
-  // 跳轉至詳細動作頁面
+  // 跳轉至詳細動作頁面 (app/actionPage.js)
   const handleOpenActionDetail = (item) => {
     router.push({
       pathname: '/actionPage',
@@ -68,7 +68,7 @@ export default function LalaDetail({ title, onBack }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Header：排版維持一致 */}
+      {/* Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.backButton}>
@@ -91,7 +91,6 @@ export default function LalaDetail({ title, onBack }) {
               onPress={() => handleOpenActionDetail(item)}
             >
               <View style={styles.infoArea}>
-                {/* 愛心按鈕：使用 stopPropagation 防止觸發父層的跳轉 */}
                 <Pressable
                   style={styles.heartBtn}
                   onPress={(e) => {
@@ -122,21 +121,23 @@ export default function LalaDetail({ title, onBack }) {
               </View>
             </Pressable>
           ))}
-          {/* 預留底部空間給固定按鈕 */}
-          <View style={{ height: 120 }} />
+          {/* 只有在非喜愛清單時才預留按鈕空間 */}
+          <View style={{ height: title === '喜愛清單' ? 20 : 120 }} />
         </ScrollView>
 
-        {/* 底部「開始」按鈕 */}
-        <View style={styles.bottomContainer}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.startBtn, 
-              { opacity: pressed ? 0.9 : 1 }
-            ]}
-          >
-            <Text style={styles.startBtnText}>開始</Text>
-          </Pressable>
-        </View>
+        {/* 底部「開始」按鈕：喜愛清單頁面會隱藏 */}
+        {title !== '喜愛清單' && (
+          <View style={styles.bottomContainer}>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.startBtn, 
+                { opacity: pressed ? 0.9 : 1 }
+              ]}
+            >
+              <Text style={styles.startBtnText}>開始</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

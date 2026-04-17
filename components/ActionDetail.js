@@ -2,25 +2,48 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ALL_STRETCHES } from './stretchData';
+import useListStore from '../store/useListStore'; 
 
 // 引入 SVG
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import PlusIcon from '../assets/images/Plus.svg';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const THEME_COLOR = '#A79E8D';
 
 export default function ActionDetail({ actionId, parentTitle, onBack }) {
-  const actionData = ALL_STRETCHES[parentTitle]?.find(item => item.id === actionId);
+  // 從 Store 取得喜愛清單
+  const favorites = useListStore((state) => state.favorites) || [];
 
+  // 資料尋找邏輯：處理從「一般部位」或「喜愛清單」進來的狀況
+  let actionData;
+  if (parentTitle === '喜愛清單') {
+    actionData = favorites.find(item => item.id === actionId);
+  } else {
+    actionData = ALL_STRETCHES[parentTitle]?.find(item => item.id === actionId);
+  }
+
+  // 若找不到資料的防錯顯示
   if (!actionData) return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={{ textAlign: 'center', marginTop: 50 }}>找不到動作資料</Text>
+      <View style={styles.headerWrapper}>
+        <View style={styles.header}>
+          <Pressable onPress={onBack} style={styles.iconButton}>
+            <TurnBackIcon width={24} height={24} />
+          </Pressable>
+          <Text style={styles.headText}>找不到資料</Text>
+          <View style={{ width: 40 }} />
+        </View>
+      </View>
+      <View style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center' }}>
+        <Text style={{ textAlign: 'center', color: '#666' }}>動作 ID: {actionId} 找不到資料</Text>
+      </View>
     </SafeAreaView>
   );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* 1. 固定 Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
@@ -34,6 +57,7 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
       </View>
 
       <View style={styles.mainContainer}>
+        {/* 2. 固定圖片區域：高度 400 */}
         <View style={styles.imageSection}>
           <Image 
             source={actionData.img} 
@@ -42,13 +66,14 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
           />
         </View>
 
+        {/* 3. 獨立捲動內容區塊 */}
         <View style={styles.contentWrapper}>
           <ScrollView 
             style={styles.contentScroll} 
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollInside}
           >
-
+            {/* 動作步驟 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.indicator} />
@@ -59,7 +84,7 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
               </View>
             </View>
 
-           
+            {/* 注意事項 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.indicator} />
@@ -78,6 +103,7 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
   );
 }
 
+// --- 重新補齊樣式表 ---
 const styles = StyleSheet.create({
   safeArea: { 
     flex: 1, 
@@ -112,7 +138,7 @@ const styles = StyleSheet.create({
   },
   imageSection: { 
     width: '100%', 
-    height: 400, // 💡 照你要求的 400 高度
+    height: 400, 
     backgroundColor: '#fff', 
     justifyContent: 'center', 
     alignItems: 'center', 
@@ -135,7 +161,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10, 
     elevation: 10,
     zIndex: 5,
-    overflow: 'hidden',
+    overflow: 'hidden', 
   },
   contentScroll: {
     flex: 1,
