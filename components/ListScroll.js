@@ -1,20 +1,18 @@
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-
 export default function ListScroll2({ part, onLongPress }) {
     const router = useRouter();
 
     return (
-        <View >
+        <View>
             <Pressable
                 onPress={() => {
                     router.push({
-                        pathname:'/emptyList',
-                        params: {
-                            name: part.name,
-
-                        }
+                        // 讀取傳進來的 pathname (也就是 '/emptyList')
+                        pathname: part.pathname || '/emptyList',
+                        // 讀取傳進來的完整 params (包含 id 與 name)
+                        params: part.params || { name: part.name }
                     });
                 }}
                 onLongPress={onLongPress}
@@ -23,7 +21,7 @@ export default function ListScroll2({ part, onLongPress }) {
                 <Text>{part.name}</Text>
             </Pressable>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -43,4 +41,4 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         elevation: 2,
     }
-})
+});
