@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 // 引入全域 Store 與靜態圖示
 import useListStore from '../store/useListStore';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
+
 import EditIcon from '../assets/images/pencil_icon.svg'; 
 import CheckIcon from '../assets/images/OK_icon.svg'; 
 import DragIcon from '../assets/images/drag_icon.svg'; 
@@ -14,24 +15,26 @@ import TrashIcon from '../assets/images/Trash.svg';
 const { width } = Dimensions.get('window');
 const THEME_COLOR = '#A79E8D';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function EmptyList() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams();
 
   const myLists = useListStore((state) => state.myLists) || [];
   const deleteActionFromList = useListStore((state) => state.deleteActionFromList);
-  const updateActionOrder = useListStore((state) => state.updateActionOrder);
 
   const currentList = myLists.find(list => list.id.toString() === id?.toString());
   
   const [actionsList, setActionsList] = useState([]);
-  const [isEditing, setIsEditing] = useState(false); // 控制刪除鍵顯示
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (currentList && currentList.actions) {
       setActionsList(currentList.actions);
     } else {
-      // 假資料防呆
       setActionsList([
         { id: "test1", name: "靠牆轉身拉伸", detail: "單手撐牆，身體向反方向轉", time: "00:30", img: null }
       ]);
@@ -52,11 +55,11 @@ export default function EmptyList() {
     ]);
   };
 
-  // 動作順序調整 (上移與下移)
   const moveAction = (index, direction) => {
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === actionsList.length - 1) return;
 
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const newList = [...actionsList];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
@@ -77,7 +80,6 @@ export default function EmptyList() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Header 區塊：完全比照 LalaDetail 樣式與比例 */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
           <Pressable onPress={backList} style={styles.backButton}>
@@ -105,7 +107,7 @@ export default function EmptyList() {
           {actionsList.length > 0 ? (
             actionsList.map((item, index) => (
               <View key={item.id || index} style={styles.actionListItem}>
-                {/* A. 左側：排序控制鈕 (取代愛心鈕位置) */}
+                {/* A. 左側：排序控制鈕 (上下鍵) */}
                 <View style={styles.dragControls}>
                   <Pressable 
                     onPress={() => moveAction(index, 'up')} 
@@ -128,7 +130,7 @@ export default function EmptyList() {
                   </Pressable>
                 </View>
 
-                {/* B. 中間：卡片文字區 */}
+                {/* B. 中間：文字區 */}
                 <View style={styles.infoArea}>
                   <View style={styles.textGroup}>
                     <Text style={styles.actionTitle}>{item.name}</Text>
@@ -137,7 +139,7 @@ export default function EmptyList() {
                   <Text style={styles.timeText}>{item.time || '00:30'}</Text>
                 </View>
 
-                {/* C. 右側：圖片與垃圾桶區 (符合 LalaDetail 圖片大小) */}
+                {/* C. 右側：圖片與垃圾桶 */}
                 <View style={styles.imageWrapper}>
                   <View style={styles.imageContainer}>
                     {item.img ? (
@@ -164,7 +166,6 @@ export default function EmptyList() {
             </View>
           )}
 
-          {/* "+ 喜愛動作" 按鈕：貼齊在最後一個動作卡片的下方，不會壓到絕對定位的開始按鈕 */}
           {actionsList.length > 0 && (
             <Pressable 
               style={styles.addActionButton} 
@@ -177,11 +178,8 @@ export default function EmptyList() {
           <View style={{ height: 160 }} />
         </ScrollView>
 
-        {/* 底部「開始」按鈕區塊：與 LalaDetail 高度與陰影設定相同 */}
         <View style={styles.bottomContainer}>
-          <Pressable
-            style={({ pressed }) => [styles.startBtn, { opacity: pressed ? 0.9 : 1 }]}
-          >
+          <Pressable style={styles.startBtn}>
             <Text style={styles.startBtnText}>開始</Text>
           </Pressable>
         </View>
@@ -235,8 +233,6 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 20, fontWeight: 'bold', color: '#000' },
   actionDesc: { fontSize: 14, color: '#666', marginTop: 4 },
   timeText: { fontSize: 16, fontWeight: '600' },
-  
-  // 圖片容器與大小比照 LalaDetail (寬高維持 110 x 110)
   imageWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -255,13 +251,9 @@ const styles = StyleSheet.create({
     padding: 6,
     marginLeft: 8,
   },
-  
-  // 空狀態樣式
   emptyContainer: { flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 60 },
   emptyView: { padding: 20, alignItems: 'center' },
   emptyText: { fontSize: 16, color: '#999', fontWeight: '500' },
-  
-  // 「+ 喜愛動作」按鈕樣式
   addActionButton: {
     backgroundColor: '#D9D9D9',
     height: 44,
@@ -272,7 +264,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   addActionText: { fontSize: 16, fontWeight: 'bold' },
-
   bottomContainer: {
     position: 'absolute', bottom: 0, width: '100%', height: 120,
     backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
