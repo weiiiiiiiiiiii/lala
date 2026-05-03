@@ -1,61 +1,64 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-
-
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useListStore = create(
-    persist(
-        (set, get) => ({
-            lists: [],
-            favoriyes: [],
+  persist(
+    (set) => ({
+      favorites: [],
+      myLists: [],
 
-            // 刪除特定的一筆 (根據 id)
-            removeList: (id) => set((state) => ({
-                lists: state.lists.filter((list) => list.id !== id)
-            })),
+      toggleFavorite: (item) => set((state) => {
+        const isFav = state.favorites.find((fav) => fav.id === item.id);
+        return {
+          favorites: isFav
+            ? state.favorites.filter((fav) => fav.id !== item.id)
+            : [...state.favorites, item],
+        };
+      }),
 
-            // 清空所有清單 (重置)
-            clearAll: () => set({ lists: [] }),
+      addList: (name, selectedActions) => set((state) => ({
+        myLists: [...(state.myLists || []), {
+          id: Date.now().toString(),
+          title: name,
+          actions: selectedActions
+        }]
+      })),
 
-            //新增清單
-            addList: (title) => set((state) => ({
-                lists: [...state.lists, { id: Date.now(), title: title, action: [] }]
-            })),
+      removeList: (id) => set((state) => ({
+        myLists: state.myLists.filter((list) => list.id !== id)
+      })),
 
-            //更新清單
-            updteList: (id, title) => set((state) => ({
-                lists: state.lists.map(list =>
-                    list.id === id ? { ...list, title: title } : list
-                )
-            })),
+      deleteActionFromList: (listId, actionId) => set((state) => ({
+        myLists: state.myLists.map(list => {
+          if (list.id === listId) {
+            return {
+              ...list,
+              actions: list.actions.filter(act => act.id !== actionId)
+            };
+          }
+          return list;
+        })
+      })),
 
-            //點擊愛心
-            toggleFavorite: (action) => {
-                const currentFavorites = get().favorites || [];
-                const isExist = currentFavorites.find((fav) => fav.id === action.id);
-
-                if (isExist) {
-                    //從喜愛移除
-                    set({
-                        favorites: currentFavorites.filter((fav) => fav.id !== action.id)
-                    });
-                    return 'removed';
-                } else {
-                    //加入喜愛
-                    set({
-                        favorites: [...currentFavorites, action]
-                    });
-                    return 'added';
-                }
-            },
-        }),
-
-        {
-            name: 'list-storage',
-            storage: createJSONStorage(() => AsyncStorage),
-        }
-    )
-)
+      // 👈 補上這一行：修正 updateActionOrder 報錯的問題
+      updateActionOrder: (listId, newActions) => set((state) => ({
+        myLists: state.myLists.map(list => {
+          if (list.id === listId) {
+            return {
+              ...list,
+              actions: newActions
+            };
+          }
+          return list;
+        })
+      })),
+    }),
+    {
+      name: 'lala-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
 
 export default useListStore;

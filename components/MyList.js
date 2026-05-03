@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router'; // 引入路由
 import ListScroll from './ListScroll';
 import PlusIcon from '../assets/images/Plus.svg';
 import useListStore from '../store/useListStore';
-import { push } from 'expo-router/build/global-state/routing';
 
 const recommend = [
   { id: 1, name: '手部' },
@@ -20,22 +19,23 @@ const recommend = [
 export default function MyList() {
   const router = useRouter();
   const [recommendItem] = useState(recommend);
-  // 取得喜愛清單
-  const favorites = useListStore((state) => state.favorites);
 
-  const mylists = useListStore((state) => state.lists);
+  // 取得喜愛清單與我的清單
+  const favorites = useListStore((state) => state.favorites) || [];
+  const myLists = useListStore((state) => state.myLists) || [];
 
   const removeList = useListStore((state) => state.removeList);
+  
   const handlongPress = (id, title) => {
     Alert.alert(
       '刪除清單',
-      `確定要刪除此清單嗎`,
+      `確定要刪除 ${title} 清單嗎？`,
       [
         { text: '取消', style: 'cancel' },
         { text: '刪除', style: 'destructive', onPress: () => removeList(id) },
       ]
-    )
-  }
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#A79E8D' }]} edges={['top']}>
@@ -47,44 +47,40 @@ export default function MyList() {
       {/* 內容區塊 */}
       <View style={{ flex: 1, backgroundColor: '#C1B69C' }}>
         <View style={styles.listCon}>
-          {/* 今日 */}
+          {/* 今日清單 */}
           <View style={styles.listitem}>
             <Text style={styles.listText}>今日</Text>
             <View style={{ paddingHorizontal: 20 }}>
               <Pressable
-                onPress={()=>{
+                onPress={() => {
                   router.push({
-                        pathname:'/emptyList',
-                        params: {
-                            name: '今日清單',
-
-                        }
-                    });
+                    pathname: '/emptyList',
+                    params: {
+                      name: '今日清單',
+                    }
+                  });
                 }}
                 style={styles.card}
               >
-                <Image source={require('../assets/images/ListPic/Today.png')} style={{ width: 190, height: 100, borderRadius: 10, }} />
+                <Image source={require('../assets/images/ListPic/Today.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
               </Pressable>
             </View>
           </View>
 
-          {/* 喜愛清單*/}
+          {/* 喜愛清單 */}
           <View style={styles.listitem}>
             <Text style={styles.listText}>喜愛</Text>
             <View style={{ paddingHorizontal: 20 }}>
               <Pressable
                 style={styles.card}
                 onPress={() => {
-                  // 跳轉時告訴 LalaDetail 這是喜愛清單
                   router.push({
                     pathname: '/exerciseDetail',
                     params: { name_zh: '喜愛清單', mode: 'favorites' }
                   });
                 }}
               >
-                <Image source={require('../assets/images/ListPic/Favorite.png')} style={{ width: 190, height: 100, borderRadius: 10, }} />
-                {/* 之後說不定可以標記數量 */}
-                {/* <Text style={styles.cardCountText}>{favorites.length} 個動作</Text> */}
+                <Image source={require('../assets/images/ListPic/Favorite.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
               </Pressable>
             </View>
           </View>
@@ -102,22 +98,26 @@ export default function MyList() {
             />
           </View>
 
-          {/* 我的 */}
+          {/* 我的清單 */}
           <View style={styles.listitem}>
             <Text style={styles.listText}>我的</Text>
-            {mylists.length === 0 ? (
+            {myLists.length === 0 ? (
               <View>
                 <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
               </View>
             ) : (
               <FlatList
-                data={mylists}
+                data={myLists}
                 renderItem={({ item }) => (
                   <ListScroll
                     part={{
                       id: item.id,
                       name: item.title,
-                      pathname: '/emptyList'
+                      pathname: '/emptyList',
+                      params: {
+                        id: item.id,
+                        name: item.title
+                      }
                     }}
                     onLongPress={() => handlongPress(item.id, item.title)}
                   />
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   card: {
     width: 190,
     height: 100,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#FFF4EA',
     borderRadius: 10,
     elevation: 2,
     shadowColor: '#000',
