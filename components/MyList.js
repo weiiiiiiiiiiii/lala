@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, View, Text, StyleSheet, Alert, Image } from 'react-native';
+import { FlatList, Pressable, View, Text, StyleSheet, Alert, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router'; // 引入路由
 import ListScroll from './ListScroll';
 import PlusIcon from '../assets/images/Plus.svg';
 import useListStore from '../store/useListStore';
+import TurnBackIcon from '../assets/images/TurnBack.svg';
 
 const recommend = [
   { id: 1, name: '手部' },
@@ -25,7 +26,14 @@ export default function MyList() {
   const myLists = useListStore((state) => state.myLists) || [];
 
   const removeList = useListStore((state) => state.removeList);
-  
+
+  //清單展開收合
+  const [isShow, showed] = useState(false);
+  const showNum = isShow ? recommendItem : recommendItem.slice(0, 0);
+
+  const [isMyShow, Myshowed] = useState(false);
+  const MyshowNum = isMyShow ? myLists : myLists.slice(0, 0);
+
   const handlongPress = (id, title) => {
     Alert.alert(
       '刪除清單',
@@ -46,91 +54,125 @@ export default function MyList() {
 
       {/* 內容區塊 */}
       <View style={{ flex: 1, backgroundColor: '#C1B69C' }}>
-        <View style={styles.listCon}>
-          {/* 今日清單 */}
-          <View style={styles.listitem}>
-            <Text style={styles.listText}>今日</Text>
-            <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                onPress={() => {
-                  router.push({
-                    pathname: '/emptyList',
-                    params: {
-                      name: '今日清單',
-                    }
-                  });
-                }}
-                style={styles.card}
-              >
-                <Image source={require('../assets/images/ListPic/Today.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
-              </Pressable>
-            </View>
-          </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollInner}
+        >
+          <View style={styles.listCon}>
 
-          {/* 喜愛清單 */}
-          <View style={styles.listitem}>
-            <Text style={styles.listText}>喜愛</Text>
-            <View style={{ paddingHorizontal: 20 }}>
-              <Pressable
-                style={styles.card}
-                onPress={() => {
-                  router.push({
-                    pathname: '/exerciseDetail',
-                    params: { name_zh: '喜愛清單', mode: 'favorites' }
-                  });
-                }}
-              >
-                <Image source={require('../assets/images/ListPic/Favorite.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* 推薦 */}
-          <View style={styles.listitem}>
-            <Text style={styles.listText}>推薦</Text>
-            <FlatList
-              data={recommendItem}
-              renderItem={({ item }) => <ListScroll part={item} />}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id.toString()}
-              contentContainerStyle={styles.list}
-            />
-          </View>
-
-          {/* 我的清單 */}
-          <View style={styles.listitem}>
-            <Text style={styles.listText}>我的</Text>
-            {myLists.length === 0 ? (
-              <View>
-                <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={myLists}
-                renderItem={({ item }) => (
-                  <ListScroll
-                    part={{
-                      id: item.id,
-                      name: item.title,
-                      pathname: '/emptyList',
-                      params: {
-                        id: item.id,
-                        name: item.title
-                      }
+            {/* 今日與喜愛 */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, gap: 15 }}>
+              {/* 今日清單 */}
+              <View style={styles.listitem}>
+                <Text style={styles.listText}>今日</Text>
+                <View>
+                  <Pressable
+                    onPress={() => {
+                      router.push({
+                        pathname: '/emptyList',
+                        params: {
+                          name: '今日清單',
+                        }
+                      });
                     }}
-                    onLongPress={() => handlongPress(item.id, item.title)}
-                  />
-                )}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.list}
-              />
-            )}
-          </View>
-        </View>
+                    style={styles.card}
+                  >
+                    <Image source={require('../assets/images/ListPic/Today.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
+                  </Pressable>
+                </View>
+              </View>
 
+              {/* 喜愛清單 */}
+              <View style={styles.listitem}>
+                <Text style={styles.listText}>喜愛</Text>
+                <View>
+                  <Pressable
+                    style={styles.card}
+                    onPress={() => {
+                      router.push({
+                        pathname: '/exerciseDetail',
+                        params: { name_zh: '喜愛清單', mode: 'favorites' }
+                      });
+                    }}
+                  >
+                    <Image source={require('../assets/images/ListPic/Favorite.png')} style={{ width: 190, height: 100, borderRadius: 10 }} />
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+
+            {/* 推薦與我的 */}
+            <View>
+              {/* 推薦 */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
+                <Text style={styles.listText2}>推薦</Text>
+                <Pressable
+                  onPress={() => showed(!isShow)}
+                >
+                  <View>
+                    <TurnBackIcon
+                      width={24}
+                      height={24}
+                      style={{
+                        transform: [
+                          { rotate: isShow ? '-90deg' : '90deg' }
+                        ]
+                      }} />
+                  </View>
+                </Pressable>
+
+              </View>
+
+              <View style={styles.listitem2}>
+                {showNum.map((item) => (
+                  <ListScroll key={item.id} part={item} />
+                ))}
+              </View>
+
+              {/* 我的清單 */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
+                <Text style={styles.listText2}>我的</Text>
+                <Pressable
+                  onPress={() => Myshowed(!isMyShow)}
+                >
+                  <View>
+                    <TurnBackIcon
+                      width={24}
+                      height={24}
+                      style={{
+                        transform: [
+                          { rotate: isMyShow ? '-90deg' : '90deg' }
+                        ]
+                      }} />
+                  </View>
+                </Pressable>
+
+              </View>
+
+              <View style={styles.listitem2}>
+                {myLists.length === 0 ? (
+                  <View>
+                    <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
+                  </View>
+                ) : (
+                  MyshowNum.map((item) => (
+                    <ListScroll
+                      key={item.id}
+                      part={{
+                        id: item.id,
+                        name: item.title,
+                        pathname: '/emptyList',
+                        params: { id: item.id, name: item.title }
+                      }}
+                      onLongPress={() => handlongPress(item.id, item.title)}
+                    />
+                  ))
+                )}
+              </View>
+
+
+            </View>
+          </View>
+        </ScrollView>
         {/* 創建清單按鈕：跳轉至 /create */}
         <Pressable
           onPress={() => router.push('/create')}
@@ -155,10 +197,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   listCon: { paddingVertical: 20 },
-  listitem: { gap: 10, height: 150 },
-  list: { gap: 20, paddingHorizontal: 20 },
+  listitem: { gap: 10, height: 'auto' },
+  listitem2: { gap: 10, height: 'auto', justifyContent: 'center', alignItems: 'center' },
+  list: { gap: 20, paddingHorizontal: 15 },
   headText: { fontSize: 28, fontWeight: 'bold' },
-  listText: { fontSize: 18, paddingLeft: 20, fontWeight: 'bold' },
+  listText: { fontSize: 18, fontWeight: 'bold' },
+  listText2: { fontSize: 18, fontWeight: 'bold', paddingLeft: 15, paddingVertical: 15 },
   btn: {
     position: 'absolute',
     right: 20,
@@ -188,5 +232,9 @@ const styles = StyleSheet.create({
   },
   alertText: {
     fontSize: 14, paddingLeft: 20
+  },
+  scrollInner: {
+    flexGrow: 1,
+    gap: 15,
   }
 });

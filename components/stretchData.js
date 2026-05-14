@@ -65,7 +65,7 @@ export const ALL_STRETCHES = {
       name: '坐姿側向拉頸', 
       detail: '手扶頭側邊向肩膀靠近', 
       time: '00:30', 
-      img: require('../assets/images/PartStretch/Neck/1.png'),
+      img: require('../assets/images/PartStretch/Neck/1.gif'),
       steps: "1. 坐姿端正，將右手放在左側頭部。\n2. 輕輕將頭部拉向右肩，直到左頸感到微緊。\n3. 另一手可以放在背後或椅子邊緣增加效果。\n4. 換邊重複動作。",
       notice: "不要憋氣，肩膀放鬆下垂，不要讓肩膀去靠近耳朵。"
     },
@@ -238,7 +238,7 @@ export const ALL_STRETCHES = {
       name: '貓牛式', 
       detail: 'Cat-Cow Stretch', 
       time: '00:30', 
-      img: require('../assets/images/PartStretch/Morning/2.png'),
+      img: require('../assets/images/PartStretch/Morning/2.gif'),
       steps: "1. 四足跪姿。吸氣時抬頭，背部下沉（牛式）。\n2. 吐氣時低頭，將背部向上拱起（貓式）。\n3. 循環動作以喚醒脊椎。",
       notice: "動作需柔和，不要在早晨肌肉僵硬時劇烈擺動。"
     },
