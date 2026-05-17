@@ -8,7 +8,7 @@ import { Modal } from 'react-native';
 import OKicon from '../assets/images/OK_icon.svg';
 
 
-export default function SignUp({ onBack }) {
+export default function EditProfile({ onBack }) {
 
     //頭像圖片
     const [photo, setPhoto] = useState(null);
@@ -58,77 +58,60 @@ export default function SignUp({ onBack }) {
                         <View style={styles.signItemCon}>
                             <View style={styles.itemCon}>
                                 <Text style={styles.nameText}>名稱</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入名稱"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
+                                <View style={styles.edititem}>
+                                    <Text>ABC</Text>
+                                    <Pressable>
+                                        <TurnBackIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
+                                    </Pressable>
                                 </View>
                             </View>
                             <View style={styles.itemCon}>
                                 <Text style={styles.nameText}>性別</Text>
 
                                 <Pressable
-                                    style={styles.inputCon}
+                                    style={styles.edititem}
                                     onPress={() => setIsmodal(true)}
                                 >
                                     <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.5 }]}>
                                         {gender || "請選擇性別"}
                                     </Text>
+                                    <TurnBackIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
                                 </Pressable>
 
                             </View>
                             <View style={styles.itemCon}>
                                 <Text style={styles.nameText}>電話</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入電話"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
+                                <View style={styles.edititem}>
+                                    <Text>ABC</Text>
+                                    <Pressable>
+                                        <TurnBackIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
+                                    </Pressable>
                                 </View>
                             </View>
                             <View style={styles.itemCon}>
                                 <Text style={styles.nameText}>電子郵件</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入電子郵件"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
+                                <View style={styles.edititem}>
+                                    <Text>ABC</Text>
+                                    <Pressable>
+                                        <TurnBackIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
+                                    </Pressable>
                                 </View>
                             </View>
                             <View style={styles.itemCon}>
                                 <Text style={styles.nameText}>密碼</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入密碼"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
+                                <View style={styles.edititem}>
+                                    <Text>ABC</Text>
+                                    <Pressable>
+                                        <TurnBackIcon width={24} height={24} style={{ transform: [{ scaleX: -1 }] }} />
+                                    </Pressable>
                                 </View>
                             </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>密碼確認</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請再次輸入密碼"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
+
                         </View>
                     </Pressable>
                 </View>
 
             </ScrollView>
-            <View style={{ alignItems: 'center' }}>
-                <Pressable style={styles.btn}>
-                    <Text style={styles.signupText}>註冊</Text>
-                </Pressable>
-            </View>
 
             {/* 性別選擇視窗 */}
             <Modal
@@ -222,21 +205,16 @@ const styles = StyleSheet.create({
         paddingVertical: 15
     },
     itemCon: {
-        gap: 10
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     },
     signItemCon: {
-        gap: 10
-
+        gap: 20
     },
-    btn: {
-        position: 'absolute',
-        backgroundColor: '#9E554D',
-        bottom: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '90%',
-        paddingVertical: 15,
-        borderRadius: 50
+    edititem: {
+        flexDirection: 'row',
+        gap: 5,
+        alignItems: 'center'
     },
     modalBG: {
         flex: 1,
@@ -278,11 +256,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 300,
         opacity: 0.5
-    },
-    signupText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 500
     },
     genderTitleText: {
         color: '#000',
