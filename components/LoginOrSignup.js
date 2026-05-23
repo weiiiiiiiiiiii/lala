@@ -1,7 +1,6 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { blue } from 'react-native-reanimated/lib/typescript/Colors';
 import { round } from 'firebase/firestore/pipelines';
 import { router } from 'expo-router';
 
