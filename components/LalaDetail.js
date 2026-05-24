@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 20, fontWeight: 'bold', color: '#000' },
   actionDesc: { fontSize: 14, color: '#666', marginTop: 4 },
   timeText: { fontSize: 16, fontWeight: '600' },
-  imageContainer: { width: 110, height: 110, backgroundColor: '#D9D9D9', marginLeft: 15, overflow: 'hidden' },
+  imageContainer: { width: 110, height: 110, backgroundColor: 'transparent', marginLeft: 15, overflow: 'hidden' },
   actionImage: { width: '100%', height: '100%' },
   emptyContainer: { flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 60 },
   emptyView: { padding: 20, alignItems: 'center' },
