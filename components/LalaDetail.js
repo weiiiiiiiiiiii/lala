@@ -131,9 +131,7 @@ export default function LalaDetail({ title, onBack }) { // 修正為符合您使
 
         {title !== '喜愛清單' && (
           <View style={styles.bottomContainer}>
-            <Pressable
-              style={({ pressed }) => [styles.startBtn, { opacity: pressed ? 0.9 : 1 }]}
-            >
+            <Pressable style={styles.startBtn}>
               <Text style={styles.startBtnText}>開始</Text>
             </Pressable>
           </View>
@@ -168,13 +166,22 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 16, color: '#999', fontWeight: '500' },
   bottomContainer: {
     position: 'absolute', bottom: 0, width: '100%', height: 120,
-    backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
     paddingBottom: 20, borderTopWidth: 1, borderTopColor: '#F0F0F0',
+    zIndex: 9999,     
   },
   startBtn: {
-    width: width * 0.85, height: 80, backgroundColor: '#B2F6B1', borderRadius: 40,
-    alignItems: 'center', justifyContent: 'center', elevation: 3,
-    shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 4,
+    width: '85%', // 💡 直接改成字串百分比，安全又不會報錯！
+    height: 80,
+    backgroundColor: '#B2F6B1',
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   startBtnText: { fontSize: 32, fontWeight: 'bold', color: '#000', letterSpacing: 2 },
 });

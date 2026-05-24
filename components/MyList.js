@@ -47,16 +47,14 @@ export default function MyList() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#A79E8D' }]} edges={['top']}>
-      {/* Header */}
+      {/* 1. Header */}
       <View style={styles.header}>
         <Text style={styles.headText}>我的清單</Text>
       </View>
 
-      {/* 內容區塊 */}
+      {/* 2. 內容區塊（只純粹包裹 ScrollView） */}
       <View style={{ flex: 1, backgroundColor: '#C1B69C' }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollInner}
-        >
+        <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
           <View style={styles.listCon}>
 
             {/* 今日與喜愛 */}
@@ -69,9 +67,7 @@ export default function MyList() {
                     onPress={() => {
                       router.push({
                         pathname: '/emptyList',
-                        params: {
-                          name: '今日清單',
-                        }
+                        params: { name: '今日清單' }
                       });
                     }}
                     style={styles.card}
@@ -105,21 +101,15 @@ export default function MyList() {
               {/* 推薦 */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
                 <Text style={styles.listText2}>推薦</Text>
-                <Pressable
-                  onPress={() => showed(!isShow)}
-                >
+                <Pressable onPress={() => showed(!isShow)}>
                   <View>
                     <TurnBackIcon
                       width={24}
                       height={24}
-                      style={{
-                        transform: [
-                          { rotate: isShow ? '-90deg' : '90deg' }
-                        ]
-                      }} />
+                      style={{ transform: [{ rotate: isShow ? '-90deg' : '90deg' }] }}
+                    />
                   </View>
                 </Pressable>
-
               </View>
 
               <View style={styles.listitem2}>
@@ -131,21 +121,15 @@ export default function MyList() {
               {/* 我的清單 */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
                 <Text style={styles.listText2}>我的</Text>
-                <Pressable
-                  onPress={() => Myshowed(!isMyShow)}
-                >
+                <Pressable onPress={() => Myshowed(!isMyShow)}>
                   <View>
                     <TurnBackIcon
                       width={24}
                       height={24}
-                      style={{
-                        transform: [
-                          { rotate: isMyShow ? '-90deg' : '90deg' }
-                        ]
-                      }} />
+                      style={{ transform: [{ rotate: isMyShow ? '-90deg' : '90deg' }] }}
+                    />
                   </View>
                 </Pressable>
-
               </View>
 
               <View style={styles.listitem2}>
@@ -168,28 +152,31 @@ export default function MyList() {
                   ))
                 )}
               </View>
-
-
             </View>
+
           </View>
         </ScrollView>
-        {/* 創建清單按鈕：跳轉至 /create */}
-        <Pressable
-          onPress={() => router.push('/create')}
-          style={({ pressed }) => [
-            styles.btn,
-            { opacity: pressed ? 0.8 : 1 }
-          ]}
-        >
-          <PlusIcon width={30} height={30} stroke={'#000'} fill="none" />
-        </Pressable>
       </View>
+
+      {/* 3. 💡 關鍵調整：把加號按鈕移到最外層，直接當 SafeAreaView 的直屬小孩！ */}
+      {/* 💡 暫時把按壓透明度拿掉，直接硬綁定樣式，看看黃色大圓鈕會不會現形！ */}
+      <Pressable
+        onPress={() => router.push('/create')}
+        style={styles.btn}
+      >
+        <PlusIcon width={35} height={35} stroke={'#000'} strokeWidth={2.5} fill="none" />
+      </Pressable>
+
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   header: {
     height: 95,
     backgroundColor: '#A79E8D',
