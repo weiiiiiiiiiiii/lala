@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
   button: { width: '45%', height: 80, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   cancelButton: { backgroundColor: '#E5989B' },
   createButton: { backgroundColor: '#A2FFB0' },
+
   buttonText: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-  
   modalFullContainer: { flex: 1, paddingTop: 60, paddingHorizontal: 20, backgroundColor: '#fff' },
   modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   listPadding: { paddingBottom: 100 },
