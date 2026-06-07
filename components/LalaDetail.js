@@ -81,11 +81,7 @@ export default function LalaDetail({ title, onBack }) {
     const { successCount, duplicateCount } = copyBulkActionsToList(targetList.id, actionList);
 
     if (successCount > 0) {
-      if (duplicateCount > 0) {
-        Alert.alert('已加入清單', `成功匯入 ${successCount} 個新動作！`);
-      } else {
-        Alert.alert('已加入清單', `成功匯入 ${successCount} 個新動作！`);
-      }
+      Alert.alert('已加入清單', `成功匯入 ${successCount} 個新動作！`);
     } else if (duplicateCount > 0) {
       Alert.alert('提示', `這些動作已在「${targetList.title}」清單裡`);
     }
@@ -122,6 +118,30 @@ export default function LalaDetail({ title, onBack }) {
       ],
       'plain-text'
     );
+  };
+
+  // 💡 終極優化：在跳轉前就提早接管 iOS 轉向，徹底一槍斃命物理 Unmount Bug！
+  const handleStartWorkout = async () => {
+    if (actionList.length === 0) return;
+
+    // 1. 先讓語音稍微提示，並立刻對 iOS 發出橫屏指令（在這一頁就先放倒手機！）
+    try {
+      const ScreenOrientation = require('expo-screen-orientation');
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } catch (e) {
+      console.log("⚠️ 提早轉橫屏失敗", e);
+    }
+
+    // 2. 溫柔延遲 150 毫秒，給 iOS 原生層充足的時間完成物理翻轉與佈局對齊
+    setTimeout(() => {
+      router.push({
+        pathname: '/workoutPlayer', 
+        params: {
+          listTitle: title,
+          actionsData: JSON.stringify(actionList) 
+        }
+      });
+    }, 150);
   };
 
   // 🧼 乾淨優雅：因為全域已經沒有今日清單了，這裡只需要單純防禦並過濾 rec_ 推薦清單即可
@@ -182,7 +202,7 @@ export default function LalaDetail({ title, onBack }) {
                     <Text style={styles.actionTitle}>{item.name}</Text>
                     <Text style={styles.actionDesc}>{item.detail}</Text>
                   </View>
-                  <Text style={styles.timeText}>{item.time}</Text>
+                  <Text style={styles.timeText}>{item.time || '00:30'}</Text>
                 </View>
 
                 <View style={styles.imageContainer}>
@@ -196,12 +216,14 @@ export default function LalaDetail({ title, onBack }) {
             </View>
           )}
 
-          <View style={{ height: title === '喜愛清單' ? 20 : 120 }} />
+          {/* 💡 智慧留白控制：清單內有資料且需要顯示按鈕時，留白 120 避免被遮擋 */}
+          <View style={{ height: actionList.length > 0 ? 120 : 20 }} />
         </ScrollView>
 
-        {title !== '喜愛清單' && (
+        {/* 💡 核心改造：只要清單內有運動項目（不論是否為喜愛清單），一律渲染開始按鈕 */}
+        {actionList.length > 0 && (
           <View style={styles.bottomContainer}>
-            <Pressable style={styles.startBtn}>
+            <Pressable style={styles.startBtn} onPress={handleStartWorkout}>
               <Text style={styles.startBtnText}>開始</Text>
             </Pressable>
           </View>
@@ -258,7 +280,6 @@ export default function LalaDetail({ title, onBack }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: THEME_COLOR },
   headerWrapper: { backgroundColor: THEME_COLOR, height: 95, justifyContent: 'center' },
-  /* 💡 修正點：修復被我污染的 justifyContent，按鈕一秒歸位 */
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15 },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   rightHeaderButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
@@ -335,8 +356,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     color: '#000',
-
-    // 🚨 【左側控制閥】：文字離左框框的距離
     marginLeft: 25,
   },
   menuDivider: {
