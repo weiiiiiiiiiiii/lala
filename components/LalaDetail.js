@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert, Modal } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar'; 
 
 // 引入自訂 SVG 圖示
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -14,23 +15,71 @@ import useListStore from '../store/useListStore';
 import { ALL_STRETCHES } from './stretchData';
 
 const { width } = Dimensions.get('window');
-const THEME_COLOR = '#A79E8D';
+
+const THEME_COLOR = '#2D3A48'; 
+const BUTTON_COLOR = '#7F8CDA'; 
+
+// ==========================================
+// 【方案 A 專用】為了讓列表卡片和愛心鍵可以獨立觸動動畫，
+// 我們建立一個獨立封裝的動畫 Pressable 元件，這樣各卡片就不會互相干擾。
+// ==========================================
+const AnimatedPressable = ({ children, style, onPress, scaleTo = 0.96 }) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: scaleTo,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 5,  // 控制彈簧的阻力，越低越 Q 彈
+      tension: 40,  // 控制彈簧的張力
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress} style={{ width: '100%' }}>
+      <Animated.View style={[style, { transform: [{ scale: scaleValue }] }]}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function LalaDetail({ title, onBack }) {
   const router = useRouter();
 
-  // 從 Store 取得全域愛心狀態、我的清單、以及複製與新建方法
   const toggleFavoriteStore = useListStore((state) => state.toggleFavorite);
   const favorites = useListStore((state) => state.favorites) || [];
   const myLists = useListStore((state) => state.myLists) || [];
   const copyBulkActionsToList = useListStore((state) => state.copyBulkActionsToList);
   const addList = useListStore((state) => state.addList);
 
-  // 本地清單狀態與控制右上角彈出選單的狀態
   const [actionList, setActionList] = useState([]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // 監聽標題與愛心清單變動，更新顯示內容
+  // ==========================================
+  // 【方案 A】Header 按鈕與底部開始按鈕的專屬動態核心
+  // ==========================================
+  const backAnimScale = useRef(new Animated.Value(1)).current;
+  const addListAnimScale = useRef(new Animated.Value(1)).current;
+  const startBtnAnimScale = useRef(new Animated.Value(1)).current;
+
+  // 動畫觸發工具函式
+  const animateScale = (animValue, toValue, isSpring = false) => {
+    if (isSpring) {
+      Animated.spring(animValue, { toValue, friction: 5, tension: 40, useNativeDriver: true }).start();
+    } else {
+      Animated.timing(animValue, { toValue, duration: 100, useNativeDriver: true }).start();
+    }
+  };
+
   useEffect(() => {
     if (title === '喜愛清單') {
       const listWithState = favorites.map(item => ({ ...item, isFavorite: true }));
@@ -45,7 +94,6 @@ export default function LalaDetail({ title, onBack }) {
     }
   }, [title, favorites]);
 
-  // 處理愛心點擊
   const handleToggleFavorite = (item) => {
     const isCurrentlyFavorite = favorites.some((fav) => fav.id === item.id);
     toggleFavoriteStore(item);
@@ -73,7 +121,6 @@ export default function LalaDetail({ title, onBack }) {
     setIsMenuVisible(true);
   };
 
-  // 執行批次複製到指定自創清單
   const handleSelectTargetList = (targetList) => {
     setIsMenuVisible(false);
     if (!copyBulkActionsToList) return;
@@ -87,7 +134,6 @@ export default function LalaDetail({ title, onBack }) {
     }
   };
 
-  // 回歸原本成功的 Alert.prompt 邏輯
   const handleCreateNewList = () => {
     setIsMenuVisible(false);
 
@@ -120,11 +166,9 @@ export default function LalaDetail({ title, onBack }) {
     );
   };
 
-  // 💡 終極優化：在跳轉前就提早接管 iOS 轉向，徹底一槍斃命物理 Unmount Bug！
   const handleStartWorkout = async () => {
     if (actionList.length === 0) return;
 
-    // 1. 先讓語音稍微提示，並立刻對 iOS 發出橫屏指令（在這一頁就先放倒手機！）
     try {
       const ScreenOrientation = require('expo-screen-orientation');
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -132,7 +176,6 @@ export default function LalaDetail({ title, onBack }) {
       console.log("⚠️ 提早轉橫屏失敗", e);
     }
 
-    // 2. 溫柔延遲 150 毫秒，給 iOS 原生層充足的時間完成物理翻轉與佈局對齊
     setTimeout(() => {
       router.push({
         pathname: '/workoutPlayer', 
@@ -144,16 +187,24 @@ export default function LalaDetail({ title, onBack }) {
     }, 150);
   };
 
-  // 🧼 乾淨優雅：因為全域已經沒有今日清單了，這裡只需要單純防禦並過濾 rec_ 推薦清單即可
   const userCustomLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <StatusBar style="light" />
+
       {/* Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
-          <Pressable onPress={onBack} style={styles.backButton}>
-            <TurnBackIcon width={24} height={24} />
+          {/* 【方案 A】返回鍵 Q彈化 */}
+          <Pressable 
+            onPressIn={() => animateScale(backAnimScale, 0.92)}
+            onPressOut={() => animateScale(backAnimScale, 1, true)}
+            onPress={onBack} 
+          >
+            <Animated.View style={[styles.backButton, { transform: [{ scale: backAnimScale }] }]}>
+              <TurnBackIcon width={20} height={20} stroke="#fff" color="#fff" />
+            </Animated.View>
           </Pressable>
 
           <Text style={styles.headText}>{title}</Text>
@@ -161,8 +212,15 @@ export default function LalaDetail({ title, onBack }) {
           {title === '喜愛清單' ? (
             <View style={{ width: 40 }} />
           ) : (
-            <Pressable onPress={handleCopyEntireList} style={styles.rightHeaderButton}>
-              <AddToList width={28} height={28} />
+            /* 【方案 A】加入清單鍵 Q彈化 */
+            <Pressable 
+              onPressIn={() => animateScale(addListAnimScale, 0.92)}
+              onPressOut={() => animateScale(addListAnimScale, 1, true)}
+              onPress={handleCopyEntireList} 
+            >
+              <Animated.View style={[styles.rightHeaderButton, { transform: [{ scale: addListAnimScale }] }]}>
+                <AddToList width={22} height={22} stroke="#fff" color="#fff" />
+              </Animated.View>
             </Pressable>
           )}
         </View>
@@ -178,25 +236,28 @@ export default function LalaDetail({ title, onBack }) {
         >
           {actionList.length > 0 ? (
             actionList.map((item) => (
-              <Pressable
+              /* 【方案 A】動作列表卡片：替換為獨立彈性縮小組件，維持原本寬高比例 */
+              <AnimatedPressable
                 key={item.id}
                 style={styles.actionListItem}
                 onPress={() => handleOpenActionDetail(item)}
+                scaleTo={0.97}
               >
                 <View style={styles.infoArea}>
-                  <Pressable
-                    style={styles.heartBtn}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleToggleFavorite(item);
-                    }}
-                  >
-                    {isItemFavorite(item.id) ? (
-                      <LoveIconActive width={24} height={24} />
-                    ) : (
-                      <LoveIcon width={24} height={24} />
-                    )}
-                  </Pressable>
+                  {/* 【方案 A】愛心鍵：替換為獨立彈性縮小組件，防止點擊事件穿透卡片 */}
+                  <View style={styles.heartContainerOuter}>
+                    <AnimatedPressable
+                      style={styles.heartBtn}
+                      onPress={() => handleToggleFavorite(item)}
+                      scaleTo={0.85}
+                    >
+                      {isItemFavorite(item.id) ? (
+                        <LoveIconActive width={24} height={24} />
+                      ) : (
+                        <LoveIcon width={24} height={24} />
+                      )}
+                    </AnimatedPressable>
+                  </View>
 
                   <View style={styles.textGroup}>
                     <Text style={styles.actionTitle}>{item.name}</Text>
@@ -208,7 +269,7 @@ export default function LalaDetail({ title, onBack }) {
                 <View style={styles.imageContainer}>
                   <Image source={item.img} style={styles.actionImage} resizeMode="cover" />
                 </View>
-              </Pressable>
+              </AnimatedPressable>
             ))
           ) : (
             <View style={styles.emptyView}>
@@ -216,15 +277,21 @@ export default function LalaDetail({ title, onBack }) {
             </View>
           )}
 
-          {/* 💡 智慧留白控制：清單內有資料且需要顯示按鈕時，留白 120 避免被遮擋 */}
           <View style={{ height: actionList.length > 0 ? 120 : 20 }} />
         </ScrollView>
 
-        {/* 💡 核心改造：只要清單內有運動項目（不論是否為喜愛清單），一律渲染開始按鈕 */}
+        {/* 【方案 A】底部開始按鈕 Q彈化 */}
         {actionList.length > 0 && (
           <View style={styles.bottomContainer}>
-            <Pressable style={styles.startBtn} onPress={handleStartWorkout}>
-              <Text style={styles.startBtnText}>開始</Text>
+            <Pressable 
+              onPressIn={() => animateScale(startBtnAnimScale, 0.95)}
+              onPressOut={() => animateScale(startBtnAnimScale, 1, true)}
+              onPress={handleStartWorkout}
+              style={{ width: '100%', alignItems: 'center' }}
+            >
+              <Animated.View style={[styles.startBtn, { transform: [{ scale: startBtnAnimScale }] }]}>
+                <Text style={styles.startBtnText}>開始</Text>
+              </Animated.View>
             </Pressable>
           </View>
         )}
@@ -249,8 +316,6 @@ export default function LalaDetail({ title, onBack }) {
                     >
                       <Text style={styles.menuItemText}>{list.title}</Text>
                     </Pressable>
-
-                    {/* 🚨 物理控制閥：清單之間的垂直留白距離 */}
                     <View style={{ height: 16, backgroundColor: 'transparent' }} />
                   </View>
                 ))
@@ -279,48 +344,79 @@ export default function LalaDetail({ title, onBack }) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: THEME_COLOR },
-  headerWrapper: { backgroundColor: THEME_COLOR, height: 95, justifyContent: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15 },
-  backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  rightHeaderButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  headText: { fontSize: 28, fontWeight: 'bold', color: '#000' },
+  headerWrapper: { backgroundColor: THEME_COLOR, height: 80, justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+  
+  backButton: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  rightHeaderButton: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  headText: { fontSize: 22, fontWeight: '700', color: '#fff', letterSpacing: 0.5 }, 
   mainContainer: { flex: 1, backgroundColor: '#fff' },
   scrollContent: { paddingVertical: 10 },
+  
+  // 保持卡片感視覺，同時移除原本壓扁的寬度，交由外層 Animated 完美延展
   actionListItem: {
-    width: '100%', flexDirection: 'row', paddingVertical: 25, paddingHorizontal: 20,
-    borderBottomWidth: 1, borderBottomColor: '#E0E0E0', justifyContent: 'space-between',
+    width: '94%',
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    flexDirection: 'row', 
+    marginVertical: 8, 
+    paddingVertical: 25, 
+    paddingHorizontal: 20,
+    justifyContent: 'space-between',
+    elevation: 3, 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   infoArea: { flex: 1, justifyContent: 'space-between' },
-  heartBtn: { marginBottom: 10, width: 30, height: 30, justifyContent: 'center', alignItems: 'center' },
+  heartContainerOuter: { width: 40, height: 40, marginBottom: 5 },
+  heartBtn: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   textGroup: { marginBottom: 15 },
-  actionTitle: { fontSize: 20, fontWeight: 'bold', color: '#000' },
-  actionDesc: { fontSize: 14, color: '#666', marginTop: 4 },
-  timeText: { fontSize: 16, fontWeight: '600' },
-  imageContainer: { width: 110, height: 110, backgroundColor: 'transparent', marginLeft: 15, overflow: 'hidden' },
+  actionTitle: { fontSize: 20, fontWeight: 'bold', color: '#111' },
+  actionDesc: { fontSize: 14, color: '#777', marginTop: 4 },
+  timeText: { fontSize: 16, fontWeight: '600', color: '#333' },
+  imageContainer: { width: 110, height: 110, backgroundColor: 'transparent', marginLeft: 15, overflow: 'hidden', borderRadius: 8 }, 
   actionImage: { width: '100%', height: '100%' },
   emptyContainer: { flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 60 },
   emptyView: { padding: 20, alignItems: 'center' },
   emptyText: { fontSize: 16, color: '#999', fontWeight: '500' },
   bottomContainer: {
-    position: 'absolute', bottom: 0, width: '100%', height: 120,
+    position: 'absolute', bottom: 0, width: '100%', height: 110,
     alignItems: 'center', justifyContent: 'center',
-    paddingBottom: 20, borderTopWidth: 1, borderTopColor: '#F0F0F0',
+    paddingBottom: 16, borderTopWidth: 1, borderTopColor: '#F5F5F5',
+    backgroundColor: '#fff', 
     zIndex: 9999,
   },
   startBtn: {
-    width: '85%',
-    height: 80,
-    backgroundColor: '#B2F6B1',
-    borderRadius: 40,
+    width: '88%',
+    height: 56, 
+    backgroundColor: BUTTON_COLOR, 
+    borderRadius: 25, 
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: BUTTON_COLOR, 
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
-  startBtnText: { fontSize: 32, fontWeight: 'bold', color: '#000', letterSpacing: 2 },
+  startBtnText: { fontSize: 20, fontWeight: '700', color: '#000', letterSpacing: 3 }, 
 
   modalOverlay: {
     flex: 1,
@@ -328,7 +424,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 130,
+    top: 85, 
     right: 20,
     width: 200,
     maxHeight: 450,
