@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, BackHandler, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, BackHandler, Alert, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Speech from 'expo-speech';
 import Svg, { Circle, Line } from 'react-native-svg';
 
-// 🌟 引入 Vision Camera 核心晶片
-import { Camera, useCameraDevices } from 'react-native-vision-camera';
-
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import NextIcon from '../assets/images/SkipIcon.svg';
 
 const AiCameraSource = require('../assets/images/AiCamera.png');
-// 🌟 休息時間動圖資產
+// 休息時間動圖資產
 const RestGifSource = require('../assets/images/Rest.gif');
 
 export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData }) {
@@ -60,12 +57,24 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   const nextVoiceTriggered = useRef(false);
   const isFirstMount = useRef(true);
 
-  // 🌟 Vision Camera 狀態與權限塔
-  const devices = useCameraDevices();
-  const device = devices.find(d => d.position === 'front') || devices[0];
-  const [hasPermission, setHasPermission] = useState(false);
+  // ==========================================
+  // 【方案 A】控制按鈕回饋之專屬動態核心
+  // ==========================================
+  const backArrowScale = useRef(new Animated.Value(1)).current;
+  const aiToggleScale = useRef(new Animated.Value(1)).current;
+  const skipBtnScale = useRef(new Animated.Value(1)).current;
+  const restartBtnScale = useRef(new Animated.Value(1)).current;
+  const exitBtnScale = useRef(new Animated.Value(1)).current;
 
-  // 🌟 坐姿側向拉頸 AI 骨骼即時動態模擬器
+  const animateScale = (animValue, toValue, isSpring = false) => {
+    if (isSpring) {
+      Animated.spring(animValue, { toValue, friction: 5, tension: 40, useNativeDriver: true }).start();
+    } else {
+      Animated.timing(animValue, { toValue, duration: 100, useNativeDriver: true }).start();
+    }
+  };
+
+  // 坐姿側向拉頸 AI 骨骼即時動態模擬器邏輯完整保留（增強科技互動感）
   const [poseData, setPoseData] = useState({
     leftEar: { x: 140, y: 80 },
     rightEar: { x: 180, y: 80 },
@@ -75,7 +84,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
     isSafe: true
   });
 
-  // ==================== 📐 🛠️ 30格離散虛線核心數學矩矩阵 ====================
+  // ==================== 📐 🛠️ 30格離散虛線核心數學矩陣 ====================
   const radius = 60;
   const strokeWidth = 6;
   const circumference = 2 * Math.PI * radius;
@@ -110,19 +119,9 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   };
   // ======================================================================
 
-  // 🌟 初始化相機權限防呆
-  useEffect(() => {
-    const requestPermission = async () => {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'granted');
-      if (status !== 'granted') {
-        Alert.alert("提示", "AI 模式需要相機權限才能偵測拉頸姿勢喔！");
-      }
-    };
-    requestPermission();
-  }, []);
+  // 💡 【相機權限防呆拔除】：移除了所有 Vision Camera 原生請求權限邏輯，免去環境報錯
 
-  // 🌟 AI 坐姿拉頸動作即時動態模擬
+  // AI 坐姿拉頸動作即時動態模擬完整保留（提供未開發頁面的科技風視覺展示）
   useEffect(() => {
     if (!isAiMode || isPaused) return;
 
@@ -345,12 +344,26 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
         </View>
 
         <View style={styles.pauseMenuContainer}>
-          <Pressable style={styles.pauseMenuBtn} onPress={handleRestartCurrent}>
-            <Text style={styles.pauseBtnText}>重新開始此運動</Text>
+          <Pressable 
+            onPressIn={() => animateScale(restartBtnScale, 0.95)}
+            onPressOut={() => animateScale(restartBtnScale, 1, true)}
+            style={styles.pauseMenuBtn} 
+            onPress={handleRestartCurrent}
+          >
+            <Animated.View style={{ transform: [{ scale: restartBtnScale }], width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={styles.pauseBtnText}>重新開始此運動</Text>
+            </Animated.View>
           </Pressable>
 
-          <Pressable style={[styles.pauseMenuBtn, styles.exitBtn]} onPress={handleExit}>
-            <Text style={styles.pauseBtnText}>退出</Text>
+          <Pressable 
+            onPressIn={() => animateScale(exitBtnScale, 0.95)}
+            onPressOut={() => animateScale(exitBtnScale, 1, true)}
+            style={[styles.pauseMenuBtn, styles.exitBtn]} 
+            onPress={handleExit}
+          >
+            <Animated.View style={{ transform: [{ scale: exitBtnScale }], width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={styles.pauseBtnText}>退出</Text>
+            </Animated.View>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -359,7 +372,6 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
 
   const skeletonColor = poseData.isSafe ? '#34C759' : '#FF3B30';
 
-  // 🌟 核心重構 1：光影隱形演算法狀態矩陣（用狀態計算三大元件的透明度）
   const showActionImg = currentAction && currentAction.img;
   const showRestText = currentAction && !currentAction.img && isBuffering;
   const showRestGif = currentAction && !currentAction.img && !isBuffering;
@@ -367,8 +379,15 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <View style={styles.topBar}>
-        <Pressable onPress={triggerPause} style={styles.iconPressZone}>
-          <TurnBackIcon width={24} height={24} />
+        <Pressable 
+          onPressIn={() => animateScale(backArrowScale, 0.85)}
+          onPressOut={() => animateScale(backArrowScale, 1, true)}
+          onPress={triggerPause} 
+          style={styles.iconPressZone}
+        >
+          <Animated.View style={{ transform: [{ scale: backArrowScale }] }}>
+            <TurnBackIcon width={24} height={24} />
+          </Animated.View>
         </Pressable>
 
         <Text style={styles.mainActionTitle}>
@@ -382,22 +401,16 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
         {/* 左側：核心畫布區 */}
         <View style={[styles.visualCanvas, isAiMode && !poseData.isSafe && styles.canvasDangerBorder]}>
           {isAiMode ? (
+            /* ==========================================
+                【核心置換】拔除原先 Vision Camera 核心，
+                改寫為純前端「尚未開發」防禦展示圖層，完全不耗費原生編譯代碼
+               ========================================== */
             <View style={styles.cameraContainer}>
-              {device && hasPermission ? (
-                <Camera
-                  style={StyleSheet.absoluteFill}
-                  device={device}
-                  isActive={!isPaused && isAiMode} // 🌟 補強 1：只有在「不是暫停」且「開啟 AI 模式」時相機才激活，防止背景死鎖
-                  video={true}                     // 🌟 補強 2：顯式宣告我們需要影像串流預覽
-                  audio={false}                    // 🌟 補強 3：硬性關閉音訊管線！徹底拔除音訊導致的 Cannot Record 錯誤
-                  enableZoomGesture={false}        // 🌟 補強 4：關閉手勢縮放，讓底層 Session 保持最純粹的極簡運算
-                />
-              ) : (
-                <View style={styles.cameraPlaceholder}>
-                  <Text style={styles.cameraPlaceholderText}>[ 正在喚醒前置相機... ]</Text>
-                </View>
-              )}
+              <View style={styles.cameraPlaceholder}>
+                <Text style={styles.cameraPlaceholderText}>[ AI功能尚未開發 ]</Text>
+              </View>
 
+              {/* 綠色/紅色 AI 骨骼動態模擬線條完美保留，保障高端科技感 */}
               <Svg style={StyleSheet.absoluteFill} viewBox="0 0 320 240">
                 <Line
                   x1={poseData.leftShoulder.x} y1={poseData.leftShoulder.y}
@@ -430,17 +443,15 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
               </View>
             </View>
           ) : (
-            // 🌟 核心重構 2：光影舞台疊羅漢！三大元件常駐在各自的位置上，只用透明度流暢切換
             <View style={styles.imageWrapper}>
-
-              {/* 🏃‍♂️ 元件一：正式動作圖層（絕對定位） */}
+              {/* 正式動作圖層 */}
               <View style={[styles.absoluteLayer, { opacity: showActionImg ? 1 : 0, zIndex: showActionImg ? 3 : 1 }]}>
                 {currentAction?.img && (
                   <Image source={currentAction.img} style={styles.actionImage} resizeMode="contain" />
                 )}
               </View>
 
-              {/* 📝 元件二：5秒純文字休息圖層（絕對定位） */}
+              {/* 5秒純文字休息圖層 */}
               <View style={[styles.absoluteLayer, { opacity: showRestText ? 1 : 0, zIndex: showRestText ? 3 : 1 }]}>
                 <View style={styles.restCenterView}>
                   <Text style={styles.restTitleText}>☕ 休息準備中...</Text>
@@ -448,7 +459,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
                 </View>
               </View>
 
-              {/* ☕ 元件三：30秒 Rest.gif 專屬小外框圖層（絕對定位） */}
+              {/* 30秒 Rest.gif 圖層 */}
               <View style={[styles.restGifWrapper, { opacity: showRestGif ? 1 : 0, zIndex: showRestGif ? 3 : 1 }]}>
                 <Image
                   source={RestGifSource}
@@ -457,24 +468,26 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
                   autoplay={true}
                 />
               </View>
-
             </View>
           )}
         </View>
 
         <View style={styles.controlTower}>
           <Pressable
+            onPressIn={() => animateScale(aiToggleScale, 0.88)}
+            onPressOut={() => animateScale(aiToggleScale, 1, true)}
             onPress={() => setIsAiMode(!isAiMode)}
-            style={[styles.aiToggleBtn, isAiMode ? styles.aiActive : styles.aiInactive]}
           >
-            <Image
-              source={AiCameraSource}
-              style={[
-                styles.cameraImage,
-                { tintColor: isAiMode ? '#ffffff' : '#000000' }
-              ]}
-              resizeMode="contain"
-            />
+            <Animated.View style={[styles.aiToggleBtn, isAiMode ? styles.aiActive : styles.aiInactive, { transform: [{ scale: aiToggleScale }] }]}>
+              <Image
+                source={AiCameraSource}
+                style={[
+                  styles.cameraImage,
+                  { tintColor: isAiMode ? '#ffffff' : '#000000' }
+                ]}
+                resizeMode="contain"
+              />
+            </Animated.View>
           </Pressable>
 
           <Pressable onPress={triggerPause} style={styles.timerRingPressZone}>
@@ -498,9 +511,16 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
             </View>
           </Pressable>
 
-          <Pressable onPress={handleNext} style={styles.skipBtnPressZone}>
-            <NextIcon width={32} height={32} />
-            <Text style={styles.skipText}>跳過</Text>
+          <Pressable 
+            onPressIn={() => animateScale(skipBtnScale, 0.9)}
+            onPressOut={() => animateScale(skipBtnScale, 1, true)}
+            onPress={handleNext} 
+            style={styles.skipBtnPressZone}
+          >
+            <Animated.View style={[{ transform: [{ scale: skipBtnScale }], alignItems: 'center' }]}>
+              <NextIcon width={32} height={32} />
+              <Text style={styles.skipText}>跳過</Text>
+            </Animated.View>
           </Pressable>
 
         </View>
@@ -522,7 +542,6 @@ const styles = StyleSheet.create({
   imageWrapper: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', position: 'relative' },
   actionImage: { width: '85%', height: '85%' },
 
-  // 🌟 核心重構 3：新增常駐層容器，讓所有圖層百分之百疊在同一個中心點，防範任何排版擠壓
   absoluteLayer: {
     position: 'absolute',
     width: '100%',
@@ -531,7 +550,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
 
-  // 🌟 休息動體容器改為常駐絕對定位，長寬 70% 物理鎖定
   restGifWrapper: {
     position: 'absolute',
     width: '70%',
@@ -546,7 +564,8 @@ const styles = StyleSheet.create({
 
   cameraContainer: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#000' },
   cameraPlaceholder: { width: '100%', height: '100%', backgroundColor: '#1C1C1E', justifyContent: 'center', alignItems: 'center' },
-  cameraPlaceholderText: { color: '#8E8E93', fontSize: 16, fontWeight: '500' },
+  // 對齊設計搞風格的洗鍊去背文字提示
+  cameraPlaceholderText: { color: '#8E8E93', fontSize: 18, fontWeight: '700', letterSpacing: 1 },
   aiBadge: { position: 'absolute', top: 12, left: 12, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   aiBadgeText: { fontSize: 13, fontWeight: 'bold' },
 
@@ -574,7 +593,7 @@ const styles = StyleSheet.create({
   resumeNavBtn: { flexDirection: 'row', alignItems: 'center' },
   resumeNavText: { color: '#fff', fontSize: 20, fontWeight: '600', marginLeft: 8 },
   pauseMenuContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 },
-  pauseMenuBtn: { width: '90%', height: 70, backgroundColor: '#48484A', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  pauseMenuBtn: { width: '90%', height: 70, backgroundColor: '#48484A', borderRadius: 16, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   exitBtn: { backgroundColor: 'rgba(255, 59, 48, 0.15)', borderWidth: 1, borderColor: 'rgba(255, 59, 48, 0.3)' },
   pauseBtnText: { color: '#fff', fontSize: 22, fontWeight: 'bold', letterSpacing: 1 }
 });

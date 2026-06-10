@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
 
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import { useRouter } from 'expo-router';
@@ -22,60 +23,8 @@ const Text_C = themeColors("text");
 
 export default function Profile() {
 
-  // //亮暗模式
-  // const { colorScheme, toggleColorScheme } = useColorScheme();
-  // const isDark = colorScheme === "dark";
-  // const scheme = isDark ? "dark" : "light";
-  // const progess = useSharedValue(isDark ? 1 : 0);
-  // const Switchprogess = useSharedValue(isDark ? 1 : 0);
-  // useEffect(() => {
-  //   progess.value = withTiming(isDark ? 1 : 0, {
-  //     duration: 2000
-  //   });
-  //   Switchprogess.value = withTiming(isDark ? 1 : 0, {
-  //     duration: 250
-  //   })
-  // }, [isDark, progess, Switchprogess]);
-  // //亮暗排版
-  // const animatedHeaderStyle = useAnimatedStyle(() => ({
-  //   backgroundColor: interpolateColor(progess.value, [0, 1], Header_C),
-  // }));
-  // const animatedBGStyle = useAnimatedStyle(() => ({
-  //   backgroundColor: interpolateColor(progess.value, [0, 1], BG_C),
-  // }));
-  // const animatedProTopStyle = useAnimatedStyle(() => ({
-  //   backgroundColor: interpolateColor(progess.value, [0, 1], ProfileTop_C),
-  // }));
-  // const animatedWindowStyle = useAnimatedStyle(() => ({
-  //   backgroundColor: interpolateColor(progess.value, [0, 1], Windows_C),
-  // }));
-  // const animatedInputStyle = useAnimatedStyle(() => ({
-  //   backgroundColor: interpolateColor(progess.value, [0, 1], Input_C),
-  // }));
-  // const animatedProTextStyle = useAnimatedStyle(() => ({
-  //   color: interpolateColor(progess.value, [0, 1], ProfileText_C),
-  // }));
-  // const animatedTextStyle = useAnimatedStyle(() => ({
-  //   color: interpolateColor(progess.value, [0, 1], Text_C),
-  // }));
-  // //亮暗切換按鈕
-  // //軌道
-  // const animatedSwitchStyle = useAnimatedStyle(() => {
-  //   return {
-  //     backgroundColor: interpolateColor(
-  //       Switchprogess.value, [0, 1], Header_C
-  //     )
-  //   }
-  // })
-  // //滑塊
-  // const animatedBTNStyle = useAnimatedStyle(() => {
-  //   return {
-  //     transform: [{ translateX: progess.value * 30 }],
-  //     backgroundColor: interpolateColor(
-  //       Switchprogess.value, [0, 1], ProfileTop_C
-  //     )
-  //   }
-  // })
+  //使用者頭像
+  const [userPic, setUserpic] = useState(null);
 
   //使用者狀態
   const [user, setUser] = useState(null);
@@ -83,8 +32,27 @@ export default function Profile() {
 
   //使用者登入狀態
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        // 💡 當使用者登入時，去 Firestore 撈出剛剛註冊存進去的 avatar (Base64)
+        try {
+          const docRef = doc(db, 'users', currentUser.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserpic(data.avatar || null); // 成功拿到頭像字串
+          }
+        } catch (error) {
+          console.error('撈取使用者頭像失敗:', error);
+        }
+      } else {
+        // 💡 登出時，把頭像清空
+        setUserpic(null);
+      }
+
       setInit(false);
     });
     return unsubscribe;
@@ -108,13 +76,20 @@ export default function Profile() {
   const router = useRouter();
 
 
+
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* 登入頭像確認區 */}
       <View style={styles.Logincontent}>
         <View style={styles.Logincheck}>
-          <Image style={styles.avatarPlaceholder} />
-          <Text style={styles.Usertext}>登入/註冊</Text>
+          {userLogin && userPic ? (
+            <Image source={{ uri: userPic }} style={styles.avatarPlaceholder} />
+          ) : (
+            <Image style={styles.avatarPlaceholder} />
+          )}
+
+          <Text style={styles.Usertext}>{userLogin ? (user.displayName||'未命名用戶') : '登入/註冊'}</Text>
         </View>
         <Pressable
           onPress={() => router.push('/loginsignup')}
@@ -126,15 +101,6 @@ export default function Profile() {
       {/* 設定 */}
       <View style={styles.settingCon}>
 
-        {/* 亮暗切換
-        <Pressable
-          onPress={toggleColorScheme}
-          style={styles.switchContainer}
-        >
-          <Animated.View style={[styles.switchTrack, animatedSwitchStyle]}>
-            <Animated.View style={[styles.switchThumb, animatedBTNStyle]} />
-          </Animated.View>
-        </Pressable> */}
 
         <View style={{ paddingHorizontal: 20, gap: 30, }}>
           {/* 運動設定 */}
@@ -172,7 +138,7 @@ export default function Profile() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10 }}>
                 <Text style={userLogin ? styles.setItemText : styles.setItemText2}>提示音量</Text>
                 <Pressable>
-                  <Text style={userLogin ? styles.setTimeText : styles.setTimeText2}>00:30</Text>
+                  <Text style={userLogin ? styles.setTimeText : styles.setTimeText2}>80</Text>
                 </Pressable>
               </View>
             </View>

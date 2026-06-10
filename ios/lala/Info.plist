@@ -58,7 +58,7 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>我們需要使用您的相機來即時偵測您的運動骨骼姿勢，以防止運動受傷。</string>
+    <string>Allow $(PRODUCT_NAME) to access your camera</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryUsageDescription</key>

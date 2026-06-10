@@ -5,7 +5,10 @@ require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
+  # Environment variable takes precedence
   return ENV['USE_CCACHE'] == '1' if ENV['USE_CCACHE']
+  
+  # Fall back to Podfile properties
   podfile_properties['apple.ccacheEnabled'] == 'true'
 end
 
@@ -24,8 +27,15 @@ target 'lala' do
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
   else
     config_command = [
-      'node', '--no-warnings', '--eval', 'require(\'expo/bin/autolinking\')',
-      'expo-modules-autolinking', 'react-native-config', '--json', '--platform', 'ios'
+      'node',
+      '--no-warnings',
+      '--eval',
+      'require(\'expo/bin/autolinking\')',
+      'expo-modules-autolinking',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
     ]
   end
 
@@ -37,11 +47,11 @@ target 'lala' do
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
-    :app_path => File.join(__dir__, '..'),
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
 
-  # ======= 🚨 終極聖戰：同時消滅 40 個 Non-Modular 錯誤與 VisionCamera 死鎖 🚨 =======
   post_install do |installer|
     react_native_post_install(
       installer,
@@ -49,18 +59,5 @@ target 'lala' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
-
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
-        
-        # 🌟 1. 絕殺關鍵：強迫 Xcode 允許 VisionCamera 跨庫尋找 React Native 核心符號
-        config.build_settings['OTHER_LDFLAGS'] = '$(inherited) -undefined dynamic_lookup'
-        
-        # 🌟 2. 核心關鍵：直接強行關閉非模組化限制，讓這 40 個 React-Core 錯誤徹底蒸發！
-        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-      end
-    end
   end
-  # =============================================================================
 end

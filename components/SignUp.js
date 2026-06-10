@@ -1,14 +1,18 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
-import { Button, Image, Keyboard, Pressable, ScrollView, StyleSheet, Systrace, Text, TextInput, View } from 'react-native';
+import { Alert, Button, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Systrace, Text, TextInput, View } from 'react-native';
 import { useState } from 'react';
 import { pickimg } from '../utlis/PhotoHandler';
 import Edit from '../assets/images/pencil_icon.svg';
 import { Modal } from 'react-native';
 import OKicon from '../assets/images/OK_icon.svg';
-
+import { useRouter } from 'expo-router';
+import { createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { auth, db } from '../config/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function SignUp({ onBack }) {
+    const router = useRouter();
 
     //頭像圖片
     const [photo, setPhoto] = useState(null);
@@ -26,107 +30,195 @@ export default function SignUp({ onBack }) {
         setIsmodal(false);
     }
 
+    //資料
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [mail, setMail] = useState('');
+    const [password, setPassword] = useState('');
+    const [checkpass, setCheckpass] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSignup = async () => {
+        if (!mail || !password || !name) {
+            Alert.alert('錯誤', '名稱、電子郵件、密碼為必填項目');
+            return;
+        }
+        if (password !== checkpass) {
+            Alert.alert('錯誤', '兩次密碼輸入不一致');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const userAccount = await createUserWithEmailAndPassword(auth, mail.trim(), password);
+            const uid = userAccount.user.uid;
+
+            await updateProfile(userAccount.user, {
+                displayName: name
+            });
+
+            await setDoc(doc(db, 'users', uid), {
+                uid: uid,
+                name: name,
+                gender: gender || '未設定',
+                phone: phone || '未設定',
+                avatar: photo,
+                workoutTime: '00:30',
+                restTime: '00:30',
+                countdownTime: '00:30',
+                volume: '80',
+                createdAt: new Date(),
+            })
+
+            await signOut(auth);
+
+            Alert.alert('成功', '註冊成功!清輸入帳密進行登入', [
+                { text: '確定', onPress: () => router.back() }
+            ]);
+        } catch (error) {
+            console.error(error);
+            let errorMsg = '註冊失敗，請稍後再試';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg = '此電子郵件已被註冊，請直接登入';
+            } else if (error.code === 'auth/weak-password') {
+                errorMsg = '密碼強度不足，長度至少需 6 個字元';
+            }
+            Alert.alert('註冊錯誤', errorMsg);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
+
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-            <Pressable
-                onPress={onBack}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
             >
-                <TurnBackIcon width={24} height={24} />
-            </Pressable>
-            <ScrollView>
-                {/* 頭像區 */}
-                <View style={{ gap: 20 }}>
-                    <View style={styles.signupCon}>
-                        <Pressable onPress={handleSelectPhoto} style={styles.imgCon}>
-                            <Image
-                                source={photo ? { uri: photo } : null}
-                                style={styles.img}
-                            />
-                            <View style={styles.smallEditBtn}>
-                                {/* 這裡可以放你的相機 SVG Icon，例如：<CameraIcon width={16} height={16} /> */}
-                                <Edit width={16} height={16} />
+
+                <Pressable
+                    onPress={() => router.back()}
+                >
+                    <TurnBackIcon width={24} height={24} />
+                </Pressable>
+                <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+                    {/* 頭像區 */}
+                    <View style={{ gap: 20 }}>
+                        <View style={styles.signupCon}>
+                            <Pressable onPress={handleSelectPhoto} style={styles.imgCon}>
+                                <Image
+                                    source={photo ? { uri: photo } : null}
+                                    style={styles.img}
+                                />
+                                <View style={styles.smallEditBtn}>
+                                    {/* 這裡可以放你的相機 SVG Icon，例如：<CameraIcon width={16} height={16} /> */}
+                                    <Edit width={16} height={16} />
+                                </View>
+                            </Pressable>
+                            <View style={styles.hr}></View>
+                        </View>
+
+                        {/* 輸入項目區 */}
+                        <Pressable
+                            onPress={Keyboard.dismiss}
+                            style={{ flex: 1 }}
+                        >
+                            <View style={styles.signItemCon}>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>名稱</Text>
+                                    <View style={styles.inputCon}>
+                                        <TextInput
+                                            style={styles.innerText}
+                                            placeholder="請輸入名稱"
+                                            placeholderTextColor="#6B6B6B"
+                                            value={name}
+                                            onChangeText={setName}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>性別</Text>
+
+                                    <Pressable
+                                        style={styles.inputCon}
+                                        onPress={() => setIsmodal(true)}
+                                    >
+                                        <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.5 }]}>
+                                            {gender || "請選擇性別"}
+                                        </Text>
+                                    </Pressable>
+
+                                </View>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>電話</Text>
+                                    <View style={styles.inputCon}>
+                                        <TextInput
+                                            style={styles.innerText}
+                                            placeholder="請輸入電話"
+                                            placeholderTextColor="#6B6B6B"
+                                            value={phone}
+                                            onChangeText={setPhone}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>電子郵件</Text>
+                                    <View style={styles.inputCon}>
+                                        <TextInput
+                                            style={styles.innerText}
+                                            placeholder="請輸入電子郵件"
+                                            placeholderTextColor="#6B6B6B"
+                                            autoCapitalize='none'
+                                            keyboardType='email-address'
+                                            value={mail}
+                                            onChangeText={setMail}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>密碼</Text>
+                                    <View style={styles.inputCon}>
+                                        <TextInput
+                                            style={styles.innerText}
+                                            placeholder="請輸入密碼"
+                                            placeholderTextColor="#6B6B6B"
+                                            secureTextEntry={true}
+                                            autoCapitalize='none'
+                                            value={password}
+                                            onChangeText={setPassword}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={styles.itemCon}>
+                                    <Text style={styles.nameText}>密碼確認</Text>
+                                    <View style={styles.inputCon}>
+                                        <TextInput
+                                            style={styles.innerText}
+                                            placeholder="請再次輸入密碼"
+                                            placeholderTextColor="#6B6B6B"
+                                            secureTextEntry={true}
+                                            autoCapitalize='none'
+                                            value={checkpass}
+                                            onChangeText={setCheckpass}
+                                        />
+                                    </View>
+                                </View>
+
                             </View>
                         </Pressable>
-                        <View style={styles.hr}></View>
                     </View>
 
-                    {/* 輸入項目區 */}
-                    <Pressable
-                        onPress={Keyboard.dismiss}
-                        style={{ flex: 1 }}
-                    >
-                        <View style={styles.signItemCon}>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>名稱</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入名稱"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>性別</Text>
-
-                                <Pressable
-                                    style={styles.inputCon}
-                                    onPress={() => setIsmodal(true)}
-                                >
-                                    <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.5 }]}>
-                                        {gender || "請選擇性別"}
-                                    </Text>
-                                </Pressable>
-
-                            </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>電話</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入電話"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>電子郵件</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入電子郵件"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>密碼</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請輸入密碼"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
-                            <View style={styles.itemCon}>
-                                <Text style={styles.nameText}>密碼確認</Text>
-                                <View style={styles.inputCon}>
-                                    <TextInput
-                                        style={styles.innerText}
-                                        placeholder="請再次輸入密碼"
-                                        placeholderTextColor="#6B6B6B"
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    </Pressable>
-                </View>
-
-            </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
             <View style={{ alignItems: 'center' }}>
-                <Pressable style={styles.btn}>
-                    <Text style={styles.signupText}>註冊</Text>
+                <Pressable
+                    style={styles.btn}
+                    onPress={handleSignup}
+                    disabled={loading}
+                >
+                    <Text style={styles.signupText}>{loading ? '註冊中...' : '註冊'}</Text>
                 </Pressable>
             </View>
 
