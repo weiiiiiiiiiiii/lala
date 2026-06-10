@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   listPadding: { paddingBottom: 100 },
   actionItem: { padding: 20, borderBottomWidth: 1, borderColor: '#eee', flexDirection: 'row', justifyContent: 'space-between' },
-  selectedItem: { backgroundColor: '#E8F5E9' },
+  selectedItem: { backgroundColor: '#b7c0c8' },
   actionName: { fontSize: 18 },
-  checkMark: { color: '#2E7D32', fontWeight: 'bold', fontSize: 18 },
+  checkMark: { color: '#424E58', fontWeight: 'bold', fontSize: 18 },
   confirmButton: { height: 60, backgroundColor: BUTTON_COLOR, borderRadius: 30, alignItems: 'center', justifyContent: 'center', marginBottom: 30 },
   confirmButtonText: { fontSize: 20, fontWeight: '700', color: '#000' }
 });
