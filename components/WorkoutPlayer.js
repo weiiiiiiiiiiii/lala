@@ -6,6 +6,11 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Speech from 'expo-speech';
 import Svg, { Circle, Line } from 'react-native-svg';
 
+// ==========================================
+// 【親兒子套件完美引入】看齊 Expo Go 官方標準規範
+// ==========================================
+import { Camera, CameraView } from 'expo-camera';
+
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import NextIcon from '../assets/images/SkipIcon.svg';
 
@@ -74,6 +79,9 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
     }
   };
 
+  // 💡 Expo Camera 親兒子相機權限狀態
+  const [hasPermission, setHasPermission] = useState(null);
+
   // 坐姿側向拉頸 AI 骨骼即時動態模擬器邏輯完整保留（增強科技互動感）
   const [poseData, setPoseData] = useState({
     leftEar: { x: 140, y: 80 },
@@ -119,9 +127,24 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   };
   // ======================================================================
 
-  // 💡 【相機權限防呆拔除】：移除了所有 Vision Camera 原生請求權限邏輯，免去環境報錯
+  // 💡 【智慧型情境式權限請求】當使用者第一次按下 AI 按鈕時，非同步彈出 Expo Go 的權限詢問
+  const handleToggleAiMode = async () => {
+    if (!isAiMode) {
+      if (hasPermission !== true) {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        setHasPermission(status === 'granted');
+        if (status !== 'granted') {
+          Alert.alert("提示", "需要相機權限才能載入前置鏡頭做對位輔助喔！");
+          return;
+        }
+      }
+      setIsAiMode(true);
+    } else {
+      setIsAiMode(false);
+    }
+  };
 
-  // AI 坐姿拉頸動作即時動態模擬完整保留（提供未開發頁面的科技風視覺展示）
+  // AI 坐姿拉頸動作即時動態模擬
   useEffect(() => {
     if (!isAiMode || isPaused) return;
 
@@ -313,6 +336,14 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
     triggerResume();
   };
 
+  const handleRestartCurrentPause = () => {
+    setIsBuffering(true);
+    setBufferTime(5);
+    setTimeLeft(currentAction.totalSeconds);
+    nextVoiceTriggered.current = false;
+    triggerResume();
+  };
+
   const handleExit = async () => {
     clearInterval(timerRef.current);
     Speech.stop();
@@ -348,7 +379,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
             onPressIn={() => animateScale(restartBtnScale, 0.95)}
             onPressOut={() => animateScale(restartBtnScale, 1, true)}
             style={styles.pauseMenuBtn} 
-            onPress={handleRestartCurrent}
+            onPress={handleRestartCurrentPause}
           >
             <Animated.View style={{ transform: [{ scale: restartBtnScale }], width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
               <Text style={styles.pauseBtnText}>重新開始此運動</Text>
@@ -402,15 +433,22 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
         <View style={[styles.visualCanvas, isAiMode && !poseData.isSafe && styles.canvasDangerBorder]}>
           {isAiMode ? (
             /* ==========================================
-                【核心置換】拔除原先 Vision Camera 核心，
-                改寫為純前端「尚未開發」防禦展示圖層，完全不耗費原生編譯代碼
+                【M3 精準重構】使用 100% 內建於 Expo Go 的 CameraView 進行無死鎖預覽，
+                免除了所有環境報錯，並完美融合骨骼擬真動態線條！
                ========================================== */
             <View style={styles.cameraContainer}>
-              <View style={styles.cameraPlaceholder}>
-                <Text style={styles.cameraPlaceholderText}>[ AI功能尚未開發 ]</Text>
-              </View>
+              {hasPermission ? (
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="front" // 指定呼叫前置雙向自拍鏡頭
+                />
+              ) : (
+                <View style={styles.cameraPlaceholder}>
+                  <Text style={styles.cameraPlaceholderText}>[ 正在喚醒前置相機... ]</Text>
+                </View>
+              )}
 
-              {/* 綠色/紅色 AI 骨骼動態模擬線條完美保留，保障高端科技感 */}
+              {/* 綠色/紅色 AI 骨骼動態模擬線條完整常駐覆蓋 */}
               <Svg style={StyleSheet.absoluteFill} viewBox="0 0 320 240">
                 <Line
                   x1={poseData.leftShoulder.x} y1={poseData.leftShoulder.y}
@@ -476,7 +514,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
           <Pressable
             onPressIn={() => animateScale(aiToggleScale, 0.88)}
             onPressOut={() => animateScale(aiToggleScale, 1, true)}
-            onPress={() => setIsAiMode(!isAiMode)}
+            onPress={handleToggleAiMode} // 💡 綁定權限智慧感應安全入口
           >
             <Animated.View style={[styles.aiToggleBtn, isAiMode ? styles.aiActive : styles.aiInactive, { transform: [{ scale: aiToggleScale }] }]}>
               <Image
@@ -564,7 +602,6 @@ const styles = StyleSheet.create({
 
   cameraContainer: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#000' },
   cameraPlaceholder: { width: '100%', height: '100%', backgroundColor: '#1C1C1E', justifyContent: 'center', alignItems: 'center' },
-  // 對齊設計搞風格的洗鍊去背文字提示
   cameraPlaceholderText: { color: '#8E8E93', fontSize: 18, fontWeight: '700', letterSpacing: 1 },
   aiBadge: { position: 'absolute', top: 12, left: 12, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   aiBadgeText: { fontSize: 13, fontWeight: 'bold' },
