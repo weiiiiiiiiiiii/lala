@@ -115,7 +115,15 @@ export default function LalaDetail({ title, onBack }) {
       );
       return;
     }
-  }
+    const isCurrentlyFavorite = favorites.some((fav) => fav.id === item.id);
+    toggleFavoriteStore(item);
+
+    if (isCurrentlyFavorite) {
+      Alert.alert('提示', '已從喜愛清單移除');
+    } else {
+      Alert.alert('提示', '已加入喜愛清單');
+    }
+  };
 
   const isItemFavorite = (id) => favorites.some(fav => fav.id === id);
 
@@ -127,7 +135,7 @@ export default function LalaDetail({ title, onBack }) {
         parentTitle: title
       }
     });
-  };
+  }
 
   const handleCopyEntireList = () => {
     setIsMenuVisible(true);

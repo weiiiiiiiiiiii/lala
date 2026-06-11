@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Pressable, View, Text, StyleSheet, Alert, Image, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -95,7 +95,16 @@ export default function MyList() {
   const [recommendItem] = useState(recommend);
   const settings = useListStore((state) => state.settings);
 
+  const [isLogin, setIsLogin] = useState(!!auth.currentUser);
+  useEffect(() => {
+    const unLogin = auth.onAuthStateChanged((user) => {
+      setIsLogin(!!user);
+    });
+    return unLogin;
+  }, []);
+
   const favorites = useListStore((state) => state.favorites) || [];
+  const displayFavorites = isLogin ? favorites : [];
 
   const calculateDuration = (actions) => {
     if (!actions || actions.length === 0) return '約0秒';
@@ -122,10 +131,10 @@ export default function MyList() {
   const removeList = useListStore((state) => state.removeList);
 
   // 摺疊控制
-  const [isShow, showed] = useState(true); 
-  const [isMyShow, Myshowed] = useState(true); 
+  const [isShow, showed] = useState(true);
+  const [isMyShow, Myshowed] = useState(true);
 
-  const userCustomLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
+  const userCustomLists = isLogin ? myLists.filter(list => !list.id.toString().startsWith('rec_')) : [];
 
   const handlongPress = (id, title) => {
     Alert.alert(
@@ -138,10 +147,10 @@ export default function MyList() {
     );
   };
 
-  const handleCreate=()=>{
-    const user=auth.currentUser;
-    if(!user){
-      Alert.alert('尚未登入','請先進行登入作業');
+  const handleCreate = () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業');
       return;
     }
     router.push('/create');
@@ -211,7 +220,7 @@ export default function MyList() {
             <View style={styles.categoryBlock}>
               <View style={styles.foldHeader}>
                 <Text style={styles.sectionHeaderLabel}>推薦</Text>
-                <Pressable 
+                <Pressable
                   onPressIn={() => animateScale(recArrowScale, 0.8)}
                   onPressOut={() => animateScale(recArrowScale, 1, true)}
                   onPress={() => showed(!isShow)}
@@ -246,7 +255,7 @@ export default function MyList() {
             <View style={styles.categoryBlock}>
               <View style={styles.foldHeader}>
                 <Text style={styles.sectionHeaderLabel}>我的</Text>
-                <Pressable 
+                <Pressable
                   onPressIn={() => animateScale(myArrowScale, 0.8)}
                   onPressOut={() => animateScale(myArrowScale, 1, true)}
                   onPress={() => Myshowed(!isMyShow)}
@@ -310,23 +319,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME_COLOR },
   header: { height: 80, backgroundColor: THEME_COLOR, alignItems: 'center', justifyContent: 'center' },
   headText: { fontSize: 24, fontWeight: '700', color: '#fff', letterSpacing: 1 },
-  
+
   mainContentArea: { flex: 1, backgroundColor: PAGE_BG },
   scrollInner: { flexGrow: 1 },
   listCon: { paddingVertical: 30, paddingHorizontal: 16 },
-  
+
   categoryBlock: { marginBottom: 20 },
   foldHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
   sectionHeaderLabel: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 15 },
-  
-  arrowRotated: { transform: [{ rotate: '-90deg' }] }, 
+
+  arrowRotated: { transform: [{ rotate: '-90deg' }] },
   cardGridGap: { gap: 12, width: '100%' },
 
   modernContentCard: {
     width: '100%',
     height: 115,
     backgroundColor: '#FFF',
-    borderRadius: 24, 
+    borderRadius: 24,
     flexDirection: 'row',
     paddingLeft: 24,
     paddingRight: 12,
@@ -342,16 +351,16 @@ const styles = StyleSheet.create({
   cardLeftContent: { flex: 1, justifyContent: 'center' },
   cardMainTitle: { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 6 },
   cardSubData: { fontSize: 12, color: '#666', fontWeight: '600', marginTop: 1 },
-  
+
   cardRightImageContainer: { width: 100, height: '100%', justifyContent: 'center', alignItems: 'center' },
   guyImage: { width: '100%', height: '90%' },
 
   // ==========================================
   // 【關鍵修正】提升 zIndex 層級、並向上挪移拉高底距，徹底免於導覽列遮擋
   // ==========================================
-  floatingBtnWrapper: { 
-    position: 'absolute', 
-    right: 20, 
+  floatingBtnWrapper: {
+    position: 'absolute',
+    right: 20,
     bottom: 150, // 從 30 大幅拉高到 90，完美浮在 TabBar 上方！
     zIndex: 99999, // 提高層級，確保百分之百霸氣穿透並蓋在導覽列最上層
   },

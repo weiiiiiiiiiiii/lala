@@ -97,9 +97,9 @@ const pickerColStyles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center' },
   centerHighlight: {
     position: 'absolute',
-    top: ITEM_HEIGHT * 2 ,
+    top: ITEM_HEIGHT * 2,
     left: -5,
-    height: ITEM_HEIGHT ,
+    height: ITEM_HEIGHT,
     width: 40,
     backgroundColor: 'rgba(255,255,255,0.22)',
     borderRadius: 14,
@@ -155,6 +155,8 @@ export default function Profile() {
     }
   };
 
+  const setMyListFirebase = useListStore((state) => state.setMyListFirebase);
+
   // 使用者登入與 Firestore 頭像獲取狀態監聽 (核心邏輯原封不動)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -167,13 +169,23 @@ export default function Profile() {
 
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setUserpic(data.avatar || null); 
+            setUserpic(data.avatar || null);
+            if (setMyListFirebase) {
+              const cloudLists = data.myLists && Array.isArray(data.myLists) ? data.myLists : [];
+              const cloudFavorites = data.favorites && Array.isArray(data.favorites) ? data.favorites : [];
+
+              setMyListFirebase(cloudLists, cloudFavorites);
+              console.log('同步使用者雲端清單與喜愛動作成功！');
+            }
           }
         } catch (error) {
           console.error('撈取使用者頭像失敗:', error);
         }
       } else {
         setUserpic(null);
+        if (setMyListFirebase) {
+          setMyListFirebase([], []);
+        }
       }
       setInit(false);
     });
@@ -254,17 +266,17 @@ export default function Profile() {
               ) : (
                 <View style={styles.avatarCircle} />
               )}
-              
+
               <Text style={styles.userNameText}>
                 {userLogin ? (user.displayName || '未命名用戶') : '登入/註冊'}
               </Text>
             </View>
-            <TurnBackIcon 
-              width={22} 
-              height={22} 
-              stroke="#fff" 
-              color="#fff" 
-              style={styles.arrowInverse} 
+            <TurnBackIcon
+              width={22}
+              height={22}
+              stroke="#fff"
+              color="#fff"
+              style={styles.arrowInverse}
             />
           </Animated.View>
         </Pressable>
@@ -274,12 +286,12 @@ export default function Profile() {
           2. Lower Container：運動設定與其他區塊 (背景 626C72)
          ========================================== */}
       <View style={[styles.lowerSettingsContainer, { backgroundColor: colors.contentBg }]}>
-        
+
         {/* 亮暗模式大膠囊列 */}
         <View style={[styles.themeToggleCapsule, { backgroundColor: colors.headerBg }]}>
           <Text style={styles.themeToggleLabel}>亮暗模式</Text>
           <View style={styles.toggleButtonsGroup}>
-            
+
             {/* 太陽按鈕 */}
             <Pressable
               onPressIn={() => animateScale(sunBtnScale, 0.85)}
@@ -292,13 +304,13 @@ export default function Profile() {
                 themeMode === 'light' && { backgroundColor: colors.darkNavy },
                 { transform: [{ scale: sunBtnScale }] }
               ]}>
-                <Image 
-                  source={SUN_PNG} 
+                <Image
+                  source={SUN_PNG}
                   style={[
-                    styles.themePngStyle, 
+                    styles.themePngStyle,
                     { tintColor: themeMode === 'light' ? '#ffffff' : '#000000' } // 💡 智慧控色
-                  ]} 
-                  resizeMode="contain" 
+                  ]}
+                  resizeMode="contain"
                 />
               </Animated.View>
             </Pressable>
@@ -315,13 +327,13 @@ export default function Profile() {
                 themeMode === 'dark' && { backgroundColor: colors.darkNavy },
                 { transform: [{ scale: moonBtnScale }] }
               ]}>
-                <Image 
-                  source={MOON_PNG} 
+                <Image
+                  source={MOON_PNG}
                   style={[
-                    styles.themePngStyle, 
+                    styles.themePngStyle,
                     { tintColor: themeMode === 'dark' ? '#ffffff' : '#000000' } // 💡 智慧控色
-                  ]} 
-                  resizeMode="contain" 
+                  ]}
+                  resizeMode="contain"
                 />
               </Animated.View>
             </Pressable>
@@ -331,7 +343,7 @@ export default function Profile() {
         {/* 滾動設定選單 */}
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={styles.innerMenuGap}>
-            
+
             {/* 分類一：運動設定 */}
             <View style={styles.menuGroup}>
               <Text style={styles.categorySubTitle}>運動設定</Text>
@@ -402,17 +414,17 @@ export default function Profile() {
       >
         <View style={styles.pickerModalOverlay}>
           <View style={[styles.bottomSheetContainer, { backgroundColor: colors.headerBg }]}>
-            
+
             {/* 頂部取消與完成動作列 */}
             <View style={styles.pickerHeaderActionBar}>
-              <Pressable 
+              <Pressable
                 onPressIn={() => animateScale(cancelBtnScale, 0.9)}
                 onPressOut={() => animateScale(cancelBtnScale, 1, true)}
                 onPress={() => setIsPickerVisible(false)}
               >
                 <Animated.Text style={[styles.pickerActionBtnText, { color: '#007AFF', transform: [{ scale: cancelBtnScale }] }]}>取消</Animated.Text>
               </Pressable>
-              
+
               <Pressable
                 onPressIn={() => animateScale(doneBtnScale, 0.9)}
                 onPressOut={() => animateScale(doneBtnScale, 1, true)}
@@ -451,15 +463,15 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: HEADER_BG },
-  
+
   topProfileSection: { height: 160, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 10 },
   loginContentRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   loginLeftCheck: { flexDirection: 'row', alignItems: 'center', gap: 20 },
-  
-  avatarCircle: { 
-    width: 90, 
-    height: 90, 
-    borderRadius: 45, 
+
+  avatarCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: '#EAE0D5',
     elevation: 3,
     shadowColor: '#000',
@@ -468,15 +480,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   userNameText: { fontSize: 22, fontWeight: '700', color: '#1A1A1A', letterSpacing: 0.5 },
-  arrowInverse: { transform: [{ scaleX: -1 }] }, 
+  arrowInverse: { transform: [{ scaleX: -1 }] },
 
   lowerSettingsContainer: { flex: 1, backgroundColor: CONTENT_BG, paddingTop: 24 },
-  
+
   themeToggleCapsule: {
     width: '90%',
     height: 60,
     borderRadius: 30,
-    backgroundColor: HEADER_BG, 
+    backgroundColor: HEADER_BG,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
@@ -500,16 +512,16 @@ const styles = StyleSheet.create({
 
   innerMenuGap: { paddingHorizontal: 24, gap: 32 },
   menuGroup: { width: '100%' },
-  
+
   categorySubTitle: { color: TEXT_PINK, fontSize: 16, fontWeight: '700', marginBottom: 10, letterSpacing: 0.5 },
   horizontalDivider: { borderBottomColor: TEXT_PINK, borderBottomWidth: 1, opacity: 0.3, marginBottom: 16, width: '100%' },
   innerRowDivider: { borderBottomColor: 'rgba(255, 255, 255, 0.08)', borderBottomWidth: 1, marginVertical: 14, width: '100%' },
-  
+
   menuItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 30 },
-  
+
   menuItemText: { color: '#fff', fontSize: 17, fontWeight: '600' },
   menuItemTextDisabled: { color: '#fff', fontSize: 17, fontWeight: '600', opacity: 0.2 },
-  
+
   timeValueText: { color: TEXT_YELLOW, fontSize: 17, fontWeight: '600' },
   timeValueTextDisabled: { color: TEXT_YELLOW, fontSize: 17, fontWeight: '600', opacity: 0.5 },
 
@@ -523,7 +535,7 @@ const styles = StyleSheet.create({
   bottomSheetContainer: { width: '100%', height: height * 0.45, backgroundColor: HEADER_BG, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
   pickerHeaderActionBar: { height: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.05)' },
   pickerActionBtnText: { fontSize: 17, color: '#fff' },
-  
+
   scrollWheelsWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10 },
   colonSeparatorView: { paddingBottom: 32, paddingHorizontal: 4 },
   colonSeparatorText: { fontSize: 30, fontWeight: '700', color: '#fff' }
