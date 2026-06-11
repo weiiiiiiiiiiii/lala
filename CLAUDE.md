@@ -6,23 +6,12 @@
 ## 重要資料夾
 - app  — 主要渲染components的畫面
 - components  — 各個不同功能的頁面
+- store - 放useListStore.js的資料夾，主要做全域變數的管理
 - package.json - 依賴的套件
 
 ## 要完成的功能
-- components/Profile.js底下已經寫好亮暗模式按鈕的切換，請讀取components底下的各個檔案，完成亮暗模式轉換的功能，色碼的轉換請參照以下說明
+- 個人頁面（components/Profile.js）的時間調整功能，更改休息時間、預設運動時間、姿勢準備倒計時會影響到每個動作頁面（components/LalaDetail.js, components/EmptyList.js 的時間顯示）和動作播放的時間長度
+- store/useListStore.js要可以算出清單內動作的總時長（包含休息時間）並顯示在 components/MyList.js 上（現在只有顯示約XX分鐘）
 
-## 亮暗模式更換
-- 最基本是預設暗色模式，下面會列出若切成亮色模式會更動的色碼
-- #2D3A48 --> #A79E8D
-- #626C72 --> #C1B69C
-- #424E58 --> #B1A893
-- #8EA8BE --> #FFF4DC
-- #7F8CDA --> #EADF8B
-- #838D95 --> #D8D1B9
-- #b7c0c8 --> #ddd9d0
-- 以下是導覽列的色碼轉換
-- #2D3A48--> #A79E8D
-- #848FA9--> #9E554D
-- #CBDAFF--> #F3C0BA
 
 

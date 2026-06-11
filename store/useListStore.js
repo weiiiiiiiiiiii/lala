@@ -4,9 +4,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useListStore = create(
   persist(
-    (set, get) => ({ 
+    (set, get) => ({
       favorites: [],
       myLists: [],
+
+      settings: {
+        defaultWorkoutTime: '00:30',
+        restTime: '00:15',
+        countdownTime: '00:08',
+      },
+
+      updateSettings: (key, value) => set((state) => ({
+        settings: { ...state.settings, [key]: value }
+      })),
 
       // 確保使用者第一次打開 App 時，myLists 裡只有內建推薦清單，乾淨純潔！
       initializeDefaultLists: (recommendActions) => set((state) => {

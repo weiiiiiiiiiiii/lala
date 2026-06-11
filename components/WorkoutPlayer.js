@@ -13,6 +13,7 @@ import { Camera, CameraView } from 'expo-camera';
 
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import NextIcon from '../assets/images/SkipIcon.svg';
+import useListStore from '../store/useListStore';
 
 const AiCameraSource = require('../assets/images/AiCamera.png');
 // 休息時間動圖資產
@@ -22,13 +23,28 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   const router = useRouter();
   const rawActions = actionsData ? JSON.parse(actionsData) : [];
 
+  // 讀取時間設定，計算秒數
+  const storedSettings = useListStore.getState().settings || {};
+  const parseTime = (str, fallback) => {
+    const parts = (str || '').split(':');
+    if (parts.length === 2) {
+      const total = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      return total > 0 ? total : fallback;
+    }
+    return fallback;
+  };
+  const defaultActionSecs = parseTime(storedSettings.defaultWorkoutTime, 30);
+  const restSecs = parseTime(storedSettings.restTime, 15);
+  const countdownSecs = parseTime(storedSettings.countdownTime, 8);
+  const countdownSecsRef = useRef(countdownSecs);
+
   const buildPlaybackList = () => {
     let list = [];
     rawActions.forEach((act, idx) => {
-      let seconds = 30;
+      let seconds = defaultActionSecs;
       if (act.time && act.time.includes(':')) {
         const [m, s] = act.time.split(':').map(Number);
-        seconds = m * 60 + s;
+        seconds = m * 60 + s || defaultActionSecs;
       }
 
       list.push({ ...act, totalSeconds: seconds, isRest: false });
@@ -38,7 +54,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
           id: `rest_${Date.now()}_${idx}`,
           name: '休息時間',
           detail: '準備下一個動作',
-          totalSeconds: 30,
+          totalSeconds: restSecs,
           isRest: true,
           img: null
         });
@@ -52,7 +68,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
   const currentAction = playbackList[currentIndex] || null;
 
   const [timeLeft, setTimeLeft] = useState(currentAction ? currentAction.totalSeconds : 0);
-  const [bufferTime, setBufferTime] = useState(5);
+  const [bufferTime, setBufferTime] = useState(countdownSecs);
   const [isBuffering, setIsBuffering] = useState(true);
 
   const [isPaused, setIsPaused] = useState(false);
@@ -210,7 +226,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
       return;
     }
 
-    if (isBuffering && bufferTime === 5) {
+    if (isBuffering && bufferTime === countdownSecsRef.current) {
       if (isFirstMount.current) {
         if (currentAction.isRest) {
           Speech.speak("休息時間");
@@ -303,7 +319,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
 
     setTimeout(() => {
       setIsBuffering(true);
-      setBufferTime(5);
+      setBufferTime(countdownSecsRef.current);
       setIsPaused(false);
     }, 280);
   };
@@ -316,7 +332,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
       const nextAction = playbackList[currentIndex + 1];
 
       setIsBuffering(true);
-      setBufferTime(5);
+      setBufferTime(countdownSecsRef.current);
 
       setTimeLeft(nextAction.totalSeconds);
       nextVoiceTriggered.current = false;
@@ -330,7 +346,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
 
   const handleRestartCurrent = () => {
     setIsBuffering(true);
-    setBufferTime(5);
+    setBufferTime(countdownSecsRef.current);
     setTimeLeft(currentAction.totalSeconds);
     nextVoiceTriggered.current = false;
     triggerResume();
@@ -338,7 +354,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
 
   const handleRestartCurrentPause = () => {
     setIsBuffering(true);
-    setBufferTime(5);
+    setBufferTime(countdownSecsRef.current);
     setTimeLeft(currentAction.totalSeconds);
     nextVoiceTriggered.current = false;
     triggerResume();

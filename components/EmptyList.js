@@ -63,6 +63,7 @@ export default function EmptyList() {
   const router = useRouter();
   const { colors } = useTheme();
   const { id, name } = useLocalSearchParams();
+  const defaultWorkoutTime = useListStore((state) => state.settings?.defaultWorkoutTime || '00:30');
 
   const myLists = useListStore((state) => state.myLists) || [];
   const deleteActionFromList = useListStore((state) => state.deleteActionFromList);
@@ -351,7 +352,7 @@ export default function EmptyList() {
                     <Text style={styles.actionTitle} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.actionDesc} numberOfLines={2}>{item.detail}</Text>
                   </View>
-                  <Text style={styles.timeText}>{item.time || '00:30'}</Text>
+                  <Text style={styles.timeText}>{item.time || defaultWorkoutTime}</Text>
                 </View>
 
                 <View style={styles.rightContentSection}>

@@ -56,6 +56,7 @@ const AnimatedPressable = ({ children, style, onPress, scaleTo = 0.96 }) => {
 export default function LalaDetail({ title, onBack }) {
   const router = useRouter();
   const { colors } = useTheme();
+  const defaultWorkoutTime = useListStore((state) => state.settings?.defaultWorkoutTime || '00:30');
 
   const toggleFavoriteStore = useListStore((state) => state.toggleFavorite);
   const favorites = useListStore((state) => state.favorites) || [];
@@ -265,7 +266,7 @@ export default function LalaDetail({ title, onBack }) {
                     <Text style={styles.actionTitle}>{item.name}</Text>
                     <Text style={styles.actionDesc}>{item.detail}</Text>
                   </View>
-                  <Text style={styles.timeText}>{item.time || '00:30'}</Text>
+                  <Text style={styles.timeText}>{item.time || defaultWorkoutTime}</Text>
                 </View>
 
                 <View style={styles.imageContainer}>

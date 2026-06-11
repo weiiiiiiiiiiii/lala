@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../context/ThemeContext';
+import useListStore from '../store/useListStore';
 
 // 引入萬能控色版返回鍵
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -27,21 +28,27 @@ const TEXT_YELLOW = '#FFFBDD';      // 時間數據與音量的柔黃色
 
 export default function Profile() {
   const router = useRouter();
-  const insets = useSafeAreaInsets(); // 💡 取得安全區域數據，用來與導覽列高度對齊
+  const insets = useSafeAreaInsets();
   const { themeMode, setThemeMode, colors } = useTheme();
+  const settings = useListStore((state) => state.settings);
+  const updateSettings = useListStore((state) => state.updateSettings);
 
   // 使用者頭像與狀態資料夾 (邏輯完美保留)
   const [userPic, setUserpic] = useState(null);
   const [user, setUser] = useState(null);
   const [init, setInit] = useState(true);
 
-  // 💡 2. 音量狀態值（範圍 0 ~ 1，預設 0.8 代表 80%）
+  // 音量狀態值（範圍 0 ~ 1，預設 0.8 代表 80%）
   const [volume, setVolume] = useState(0.8);
-  const trackWidth = 160; // 軌道固定物理寬度
+  const trackWidth = 160;
 
   // 控制時間選擇器 Modal 顯示
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [currentSettingLabel, setCurrentSettingLabel] = useState('');
+
+  // TimePicker 選取狀態
+  const [pickerMinutes, setPickerMinutes] = useState(0);
+  const [pickerSeconds, setPickerSeconds] = useState(30);
 
   // ==========================================
   // 【方案 A】控制按鈕回饋之專屬動態核心
@@ -127,10 +134,30 @@ export default function Profile() {
     }
   };
 
+  const parseTimeStr = (str) => {
+    const parts = (str || '00:00').split(':');
+    return { m: parseInt(parts[0]) || 0, s: parseInt(parts[1]) || 0 };
+  };
+
   const openTimePicker = (label) => {
-    if (!userLogin) return; 
+    if (!userLogin) return;
     setCurrentSettingLabel(label);
+    let timeStr = '00:30';
+    if (label === '預設運動時間') timeStr = settings?.defaultWorkoutTime || '00:30';
+    else if (label === '每次休息時間') timeStr = settings?.restTime || '00:15';
+    else if (label === '姿勢準備倒計時') timeStr = settings?.countdownTime || '00:08';
+    const { m, s } = parseTimeStr(timeStr);
+    setPickerMinutes(m);
+    setPickerSeconds(s);
     setIsPickerVisible(true);
+  };
+
+  const handlePickerDone = () => {
+    const timeStr = `${String(pickerMinutes).padStart(2, '0')}:${String(pickerSeconds).padStart(2, '0')}`;
+    if (currentSettingLabel === '預設運動時間') updateSettings('defaultWorkoutTime', timeStr);
+    else if (currentSettingLabel === '每次休息時間') updateSettings('restTime', timeStr);
+    else if (currentSettingLabel === '姿勢準備倒計時') updateSettings('countdownTime', timeStr);
+    setIsPickerVisible(false);
   };
 
   if (init) return null;
@@ -244,21 +271,21 @@ export default function Profile() {
               {/* 預設運動時間項目 */}
               <Pressable style={styles.menuItemRow} onPress={() => openTimePicker('預設運動時間')}>
                 <Text style={userLogin ? styles.menuItemText : styles.menuItemTextDisabled}>預設運動時間</Text>
-                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>00:30</Text>
+                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>{settings?.defaultWorkoutTime || '00:30'}</Text>
               </Pressable>
               <View style={styles.innerRowDivider} />
 
               {/* 每次休息時間項目 */}
               <Pressable style={styles.menuItemRow} onPress={() => openTimePicker('每次休息時間')}>
                 <Text style={userLogin ? styles.menuItemText : styles.menuItemTextDisabled}>每次休息時間</Text>
-                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>00:15</Text>
+                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>{settings?.restTime || '00:15'}</Text>
               </Pressable>
               <View style={styles.innerRowDivider} />
 
               {/* 姿勢準備倒計時項目 */}
               <Pressable style={styles.menuItemRow} onPress={() => openTimePicker('姿勢準備倒計時')}>
                 <Text style={userLogin ? styles.menuItemText : styles.menuItemTextDisabled}>姿勢準備倒計時</Text>
-                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>00:08</Text>
+                <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>{settings?.countdownTime || '00:08'}</Text>
               </Pressable>
               <View style={styles.innerRowDivider} />
 
@@ -340,39 +367,67 @@ export default function Profile() {
                 <Animated.Text style={[styles.pickerActionBtnText, { color: '#007AFF', transform: [{ scale: cancelBtnScale }] }]}>取消</Animated.Text>
               </Pressable>
               
-              <Pressable 
+              <Pressable
                 onPressIn={() => animateScale(doneBtnScale, 0.9)}
                 onPressOut={() => animateScale(doneBtnScale, 1, true)}
-                onPress={() => setIsPickerVisible(false)}
+                onPress={handlePickerDone}
               >
                 <Animated.Text style={[styles.pickerActionBtnText, { color: '#007AFF', fontWeight: '700', transform: [{ scale: doneBtnScale }] }]}>完成</Animated.Text>
               </Pressable>
             </View>
 
-            {/* 復刻設計圖高質感滾動模擬展示層 */}
+            {/* 滾動選秒區：ambient 數字可點擊直接選秒，中心膠囊點擊微調 */}
             <View style={styles.scrollWheelsWrapper}>
-              <Text style={styles.ambientWheelNumber}>10</Text>
-              <Text style={styles.ambientWheelNumber}>15</Text>
-              <Text style={styles.ambientWheelNumber}>20</Text>
-              <Text style={styles.ambientWheelNumber}>25</Text>
-              
+              {/* 上方 4 個 ambient 秒數（動態計算，環繞當前選中值） */}
+              {(() => {
+                const opts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+                const idx = opts.indexOf(pickerSeconds < 0 ? 0 : pickerSeconds - (pickerSeconds % 5));
+                return [-4, -3, -2, -1].map(offset => {
+                  const val = opts[(idx + offset + 12) % 12];
+                  return (
+                    <Pressable key={`above_${val}`} onPress={() => setPickerSeconds(val)}>
+                      <Text style={styles.ambientWheelNumber}>{String(val).padStart(2, '0')}</Text>
+                    </Pressable>
+                  );
+                });
+              })()}
+
               {/* 核心選中高亮排版列 */}
               <View style={styles.activeSelectionCenterRow}>
-                <View style={styles.numberCapsuleContainer}>
-                  <Text style={styles.centerActiveNumberText}>0</Text>
-                </View>
+                {/* 分鐘膠囊：點擊 +1 分，長按 -1 分 */}
+                <Pressable
+                  style={styles.numberCapsuleContainer}
+                  onPress={() => setPickerMinutes(m => (m + 1) % 60)}
+                  onLongPress={() => setPickerMinutes(m => (m - 1 + 60) % 60)}
+                >
+                  <Text style={styles.centerActiveNumberText}>{String(pickerMinutes).padStart(2, '0')}</Text>
+                </Pressable>
                 <Text style={styles.unitLabelText}>分鐘</Text>
 
-                <View style={styles.numberCapsuleContainer}>
-                  <Text style={styles.centerActiveNumberText}>30</Text>
-                </View>
+                {/* 秒數膠囊：點擊 +5 秒，長按 -5 秒 */}
+                <Pressable
+                  style={styles.numberCapsuleContainer}
+                  onPress={() => setPickerSeconds(s => (s + 5) % 60)}
+                  onLongPress={() => setPickerSeconds(s => (s - 5 + 60) % 60)}
+                >
+                  <Text style={styles.centerActiveNumberText}>{String(pickerSeconds).padStart(2, '0')}</Text>
+                </Pressable>
                 <Text style={styles.unitLabelText}>秒</Text>
               </View>
 
-              <Text style={styles.ambientWheelNumber}>35</Text>
-              <Text style={styles.ambientWheelNumber}>40</Text>
-              <Text style={styles.ambientWheelNumber}>45</Text>
-              <Text style={styles.ambientWheelNumber}>50</Text>
+              {/* 下方 4 個 ambient 秒數 */}
+              {(() => {
+                const opts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+                const idx = opts.indexOf(pickerSeconds < 0 ? 0 : pickerSeconds - (pickerSeconds % 5));
+                return [1, 2, 3, 4].map(offset => {
+                  const val = opts[(idx + offset) % 12];
+                  return (
+                    <Pressable key={`below_${val}`} onPress={() => setPickerSeconds(val)}>
+                      <Text style={styles.ambientWheelNumber}>{String(val).padStart(2, '0')}</Text>
+                    </Pressable>
+                  );
+                });
+              })()}
             </View>
 
           </View>

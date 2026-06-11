@@ -91,8 +91,31 @@ export default function MyList() {
   const router = useRouter();
   const { colors } = useTheme();
   const [recommendItem] = useState(recommend);
+  const settings = useListStore((state) => state.settings);
 
   const favorites = useListStore((state) => state.favorites) || [];
+
+  const calculateDuration = (actions) => {
+    if (!actions || actions.length === 0) return '約0秒';
+    const parseT = (str, fallback) => {
+      const parts = (str || '').split(':');
+      if (parts.length === 2) {
+        const t = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        return t > 0 ? t : fallback;
+      }
+      return fallback;
+    };
+    const defaultSec = parseT(settings?.defaultWorkoutTime, 30);
+    const restSec = parseT(settings?.restTime, 15);
+    let total = 0;
+    actions.forEach(act => { total += parseT(act.time, defaultSec); });
+    total += Math.max(0, actions.length - 1) * restSec;
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    if (mins === 0) return `約${secs}秒`;
+    if (secs === 0) return `約${mins}分鐘`;
+    return `約${mins}分${secs}秒`;
+  };
   const myLists = useListStore((state) => state.myLists) || [];
   const removeList = useListStore((state) => state.removeList);
 
@@ -129,12 +152,12 @@ export default function MyList() {
   };
 
   // 渲染統一大卡片的內部佈局
-  const renderCardContent = (titleText, actionsCount, imageSource) => (
+  const renderCardContent = (titleText, actions, imageSource) => (
     <>
       <View style={styles.cardLeftContent}>
         <Text style={styles.cardMainTitle}>{titleText}</Text>
-        <Text style={styles.cardSubData}>{actionsCount}項</Text>
-        <Text style={styles.cardSubData}>約XX分鐘</Text>
+        <Text style={styles.cardSubData}>{actions.length}項</Text>
+        <Text style={styles.cardSubData}>{calculateDuration(actions)}</Text>
       </View>
       <View style={styles.cardRightImageContainer}>
         <Image source={imageSource} style={styles.guyImage} resizeMode="contain" />
@@ -168,7 +191,7 @@ export default function MyList() {
                   });
                 }}
               >
-                {renderCardContent('喜愛動作', favorites.length, SMALL_GUY_1)}
+                {renderCardContent('喜愛動作', favorites, SMALL_GUY_1)}
               </AnimatedPressable>
             </View>
 
@@ -200,7 +223,7 @@ export default function MyList() {
                         });
                       }}
                     >
-                      {renderCardContent(item.name, item.actions.length, getSmallGuyImage(index))}
+                      {renderCardContent(item.name, item.actions, getSmallGuyImage(index))}
                     </AnimatedPressable>
                   ))}
                 </View>
@@ -241,7 +264,7 @@ export default function MyList() {
                         }}
                         onLongPress={() => handlongPress(item.id, item.title)}
                       >
-                        {renderCardContent(item.title, item.actions?.length || 0, getSmallGuyImage(index))}
+                        {renderCardContent(item.title, item.actions || [], getSmallGuyImage(index))}
                       </AnimatedPressable>
                     ))
                   )}
