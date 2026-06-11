@@ -138,6 +138,16 @@ export default function LalaDetail({ title, onBack }) {
   }
 
   const handleCopyEntireList = () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業',
+        [
+          { text: '取消', style: 'cancel' },
+          { text: '前往登入', onPress: () => router.push('/loginsignup') }
+        ]
+      );
+      return;
+    }
     setIsMenuVisible(true);
   };
 
