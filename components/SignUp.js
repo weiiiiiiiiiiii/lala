@@ -11,6 +11,13 @@ import { createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase
 import { auth, db } from '../config/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
+// ==========================================
+// 統一更換為與登入頁面相同的設計圖配色變數
+// ==========================================
+const BG_COLOR = '#626C72';         // 滿版主要背景顏色
+const INPUT_BG = '#424E58';         // 輸入欄背景顏色
+const BTN_COLOR = '#9E554D';        // 註冊按鈕顏色
+
 export default function SignUp({ onBack }) {
     const router = useRouter();
 
@@ -100,10 +107,12 @@ export default function SignUp({ onBack }) {
 
                 <Pressable
                     onPress={() => router.back()}
+                    style={{ marginBottom: 10 }}
                 >
-                    <TurnBackIcon width={24} height={24} />
+                    {/* 💡 加上控色，讓返回按鈕在深夜藍灰底色下正常顯示 */}
+                    <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" />
                 </Pressable>
-                <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+                <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
                     {/* 頭像區 */}
                     <View style={{ gap: 20 }}>
                         <View style={styles.signupCon}>
@@ -113,7 +122,6 @@ export default function SignUp({ onBack }) {
                                     style={styles.img}
                                 />
                                 <View style={styles.smallEditBtn}>
-                                    {/* 這裡可以放你的相機 SVG Icon，例如：<CameraIcon width={16} height={16} /> */}
                                     <Edit width={16} height={16} />
                                 </View>
                             </Pressable>
@@ -132,7 +140,7 @@ export default function SignUp({ onBack }) {
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入名稱"
-                                            placeholderTextColor="#6B6B6B"
+                                            placeholderTextColor="rgba(255, 255, 255, 0.4)" // 💡 智慧優化：防深色底吞字
                                             value={name}
                                             onChangeText={setName}
                                         />
@@ -145,7 +153,7 @@ export default function SignUp({ onBack }) {
                                         style={styles.inputCon}
                                         onPress={() => setIsmodal(true)}
                                     >
-                                        <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.5 }]}>
+                                        <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.4 }]}>
                                             {gender || "請選擇性別"}
                                         </Text>
                                     </Pressable>
@@ -157,7 +165,7 @@ export default function SignUp({ onBack }) {
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入電話"
-                                            placeholderTextColor="#6B6B6B"
+                                            placeholderTextColor="rgba(255, 255, 255, 0.4)" // 💡 智慧優化：防深色底吞字
                                             value={phone}
                                             onChangeText={setPhone}
                                         />
@@ -169,7 +177,7 @@ export default function SignUp({ onBack }) {
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入電子郵件"
-                                            placeholderTextColor="#6B6B6B"
+                                            placeholderTextColor="rgba(255, 255, 255, 0.4)" // 💡 智慧優化：防深色底吞字
                                             autoCapitalize='none'
                                             keyboardType='email-address'
                                             value={mail}
@@ -183,7 +191,7 @@ export default function SignUp({ onBack }) {
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入密碼"
-                                            placeholderTextColor="#6B6B6B"
+                                            placeholderTextColor="rgba(255, 255, 255, 0.4)" // 💡 智慧優化：防深色底吞字
                                             secureTextEntry={true}
                                             autoCapitalize='none'
                                             value={password}
@@ -197,7 +205,7 @@ export default function SignUp({ onBack }) {
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請再次輸入密碼"
-                                            placeholderTextColor="#6B6B6B"
+                                            placeholderTextColor="rgba(255, 255, 255, 0.4)" // 💡 智慧優化：防深色底吞字
                                             secureTextEntry={true}
                                             autoCapitalize='none'
                                             value={checkpass}
@@ -265,7 +273,7 @@ export default function SignUp({ onBack }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#C1B69C', // 統一 LALA 的褐灰色底
+        backgroundColor: BG_COLOR, // 💡 換上高級大背景色 626C72
         paddingHorizontal: 20,
         paddingVertical: 30
     },
@@ -295,7 +303,6 @@ const styles = StyleSheet.create({
         opacity: 0.8,
         alignItems: 'center',
         justifyContent: 'center',
-        // 加點陰影讓按鈕更立體
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -303,12 +310,12 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     hr: {
-        borderBottomColor: '#898170',
+        borderBottomColor: 'rgba(255, 255, 255, 0.15)', // 💡 更換為具現代感的微透明白線
         borderBottomWidth: 1,
         width: '100%'
     },
     inputCon: {
-        backgroundColor: '#B1A893',
+        backgroundColor: INPUT_BG, // 💡 換上輸入框底色 424E58
         borderRadius: 50,
         paddingHorizontal: 20,
         paddingVertical: 15
@@ -318,11 +325,10 @@ const styles = StyleSheet.create({
     },
     signItemCon: {
         gap: 10
-
     },
     btn: {
         position: 'absolute',
-        backgroundColor: '#9E554D',
+        backgroundColor: BTN_COLOR, // 💡 綁定註冊按鈕顏色變數 9E554D
         bottom: 30,
         alignItems: 'center',
         justifyContent: 'center',
@@ -361,25 +367,24 @@ const styles = StyleSheet.create({
     },
     nameText: {
         paddingLeft: 10,
-        color: '#1A1A1A',
+        color: '#fff', // 💡 更換為純白，與深色底框形成高對比
         fontSize: 16,
-        fontWeight: 500
+        fontWeight: '500'
     },
     innerText: {
-        color: '#1A1A1A',
+        color: '#fff', // 💡 打字顏色換上純白，字體絕不被吞掉
         fontSize: 14,
-        fontWeight: 300,
-        opacity: 0.5
+        fontWeight: '400',
     },
     signupText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: 500
+        fontWeight: '500'
     },
     genderTitleText: {
         color: '#000',
         fontSize: 24,
-        fontWeight: 500
+        fontWeight: '500'
     },
     optionText: {
         fontSize: 18,
