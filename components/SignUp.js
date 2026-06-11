@@ -81,7 +81,7 @@ export default function SignUp({ onBack }) {
 
             await signOut(auth);
 
-            Alert.alert('成功', '註冊成功!清輸入帳密進行登入', [
+            Alert.alert('成功', '註冊成功!請輸入帳密進行登入', [
                 { text: '確定', onPress: () => router.back() }
             ]);
         } catch (error) {
