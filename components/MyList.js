@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import useListStore from '../store/useListStore';
 import { useTheme } from '../context/ThemeContext';
+import { auth } from '../config/firebase';
+
 
 // 引入自訂 SVG 圖示
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -135,6 +137,16 @@ export default function MyList() {
       ]
     );
   };
+
+  const handleCreate=()=>{
+    const user=auth.currentUser;
+    if(!user){
+      Alert.alert('尚未登入','請先進行登入作業');
+      return;
+    }
+    router.push('/create');
+  }
+
 
   // ==========================================
   // 【方案 A】非列表按鈕的專屬動態控制
@@ -282,7 +294,7 @@ export default function MyList() {
       <Pressable
         onPressIn={() => animateScale(plusBtnScale, 0.9)}
         onPressOut={() => animateScale(plusBtnScale, 1, true)}
-        onPress={() => router.push('/create')}
+        onPress={handleCreate}
         style={styles.floatingBtnWrapper}
       >
         <Animated.View style={[styles.btn, { backgroundColor: colors.floatBtn, transform: [{ scale: plusBtnScale }] }]}>

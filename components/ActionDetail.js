@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 85,                             
+    top: 100,                             
     right: 20,
     width: 200,                         
     maxHeight: 450,                      

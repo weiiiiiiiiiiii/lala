@@ -508,7 +508,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
               {/* 5秒純文字休息圖層 */}
               <View style={[styles.absoluteLayer, { opacity: showRestText ? 1 : 0, zIndex: showRestText ? 3 : 1 }]}>
                 <View style={styles.restCenterView}>
-                  <Text style={styles.restTitleText}>☕ 休息準備中...</Text>
+                  <Text style={styles.restTitleText}> 休息準備中...</Text>
                   <Text style={styles.restDescText}>調整呼吸，稍喘一下...</Text>
                 </View>
               </View>

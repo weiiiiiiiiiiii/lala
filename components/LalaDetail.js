@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../context/ThemeContext';
+import { auth } from '../config/firebase';
 
 // 引入自訂 SVG 圖示
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -17,8 +18,8 @@ import { ALL_STRETCHES } from './stretchData';
 
 const { width } = Dimensions.get('window');
 
-const THEME_COLOR = '#2D3A48'; 
-const BUTTON_COLOR = '#7F8CDA'; 
+const THEME_COLOR = '#2D3A48';
+const BUTTON_COLOR = '#7F8CDA';
 
 // ==========================================
 // 【方案 A 專用】為了讓列表卡片和愛心鍵可以獨立觸動動畫，
@@ -98,15 +99,23 @@ export default function LalaDetail({ title, onBack }) {
   }, [title, favorites]);
 
   const handleToggleFavorite = (item) => {
-    const isCurrentlyFavorite = favorites.some((fav) => fav.id === item.id);
-    toggleFavoriteStore(item);
-
-    if (isCurrentlyFavorite) {
-      Alert.alert('提示', '已從喜愛清單移除');
-    } else {
-      Alert.alert('提示', '已加入喜愛清單');
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業',
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '前往登入',
+            onPress: () => {
+              // 如果你的登入入口在 /loginsignup，直接推頁面過去
+              router.push('/loginsignup');
+            }
+          }
+        ]
+      );
+      return;
     }
-  };
+  }
 
   const isItemFavorite = (id) => favorites.some(fav => fav.id === id);
 
@@ -181,10 +190,10 @@ export default function LalaDetail({ title, onBack }) {
 
     setTimeout(() => {
       router.push({
-        pathname: '/workoutPlayer', 
+        pathname: '/workoutPlayer',
         params: {
           listTitle: title,
-          actionsData: JSON.stringify(actionList) 
+          actionsData: JSON.stringify(actionList)
         }
       });
     }, 150);
@@ -200,10 +209,10 @@ export default function LalaDetail({ title, onBack }) {
       <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           {/* 【方案 A】返回鍵 Q彈化 */}
-          <Pressable 
+          <Pressable
             onPressIn={() => animateScale(backAnimScale, 0.92)}
             onPressOut={() => animateScale(backAnimScale, 1, true)}
-            onPress={onBack} 
+            onPress={onBack}
           >
             <Animated.View style={[styles.backButton, { transform: [{ scale: backAnimScale }] }]}>
               <TurnBackIcon width={20} height={20} stroke="#fff" color="#fff" />
@@ -216,10 +225,10 @@ export default function LalaDetail({ title, onBack }) {
             <View style={{ width: 40 }} />
           ) : (
             /* 【方案 A】加入清單鍵 Q彈化 */
-            <Pressable 
+            <Pressable
               onPressIn={() => animateScale(addListAnimScale, 0.92)}
               onPressOut={() => animateScale(addListAnimScale, 1, true)}
-              onPress={handleCopyEntireList} 
+              onPress={handleCopyEntireList}
             >
               <Animated.View style={[styles.rightHeaderButton, { transform: [{ scale: addListAnimScale }] }]}>
                 <AddToList width={22} height={22} stroke="#fff" color="#fff" />
@@ -286,7 +295,7 @@ export default function LalaDetail({ title, onBack }) {
         {/* 【方案 A】底部開始按鈕 Q彈化 */}
         {actionList.length > 0 && (
           <View style={styles.bottomContainer}>
-            <Pressable 
+            <Pressable
               onPressIn={() => animateScale(startBtnAnimScale, 0.95)}
               onPressOut={() => animateScale(startBtnAnimScale, 1, true)}
               onPress={handleStartWorkout}
@@ -349,39 +358,39 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: THEME_COLOR },
   headerWrapper: { backgroundColor: THEME_COLOR, height: 80, justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-  
-  backButton: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
-    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  rightHeaderButton: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
-    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  rightHeaderButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  headText: { fontSize: 22, fontWeight: '700', color: '#fff', letterSpacing: 0.5 }, 
+  headText: { fontSize: 22, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
   mainContainer: { flex: 1, backgroundColor: '#fff' },
   scrollContent: { paddingVertical: 10 },
-  
+
   // 保持卡片感視覺，同時移除原本壓扁的寬度，交由外層 Animated 完美延展
   actionListItem: {
     width: '94%',
     alignSelf: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
-    flexDirection: 'row', 
-    marginVertical: 8, 
-    paddingVertical: 25, 
+    flexDirection: 'row',
+    marginVertical: 8,
+    paddingVertical: 25,
     paddingHorizontal: 20,
     justifyContent: 'space-between',
-    elevation: 3, 
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -394,7 +403,7 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 20, fontWeight: 'bold', color: '#111' },
   actionDesc: { fontSize: 14, color: '#777', marginTop: 4 },
   timeText: { fontSize: 16, fontWeight: '600', color: '#333' },
-  imageContainer: { width: 110, height: 110, backgroundColor: 'transparent', marginLeft: 15, overflow: 'hidden', borderRadius: 8 }, 
+  imageContainer: { width: 110, height: 110, backgroundColor: 'transparent', marginLeft: 15, overflow: 'hidden', borderRadius: 8 },
   actionImage: { width: '100%', height: '100%' },
   emptyContainer: { flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 60 },
   emptyView: { padding: 20, alignItems: 'center' },
@@ -403,23 +412,23 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, width: '100%', height: 110,
     alignItems: 'center', justifyContent: 'center',
     paddingBottom: 16, borderTopWidth: 1, borderTopColor: '#F5F5F5',
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
     zIndex: 9999,
   },
   startBtn: {
     width: '88%',
-    height: 56, 
-    backgroundColor: BUTTON_COLOR, 
-    borderRadius: 25, 
+    height: 56,
+    backgroundColor: BUTTON_COLOR,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
-    shadowColor: BUTTON_COLOR, 
+    shadowColor: BUTTON_COLOR,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
   },
-  startBtnText: { fontSize: 20, fontWeight: '700', color: '#000', letterSpacing: 3 }, 
+  startBtnText: { fontSize: 20, fontWeight: '700', color: '#000', letterSpacing: 3 },
 
   modalOverlay: {
     flex: 1,
@@ -427,7 +436,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 85, 
+    top: 100,
     right: 20,
     width: 200,
     maxHeight: 450,
