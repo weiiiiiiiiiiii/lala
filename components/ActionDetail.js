@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions, Alert, Modal } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions, Alert, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { ALL_STRETCHES } from './stretchData';
-import useListStore from '../store/useListStore'; 
+import useListStore from '../store/useListStore';
+import { useTheme } from '../context/ThemeContext';
 
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import PlusIcon from '../assets/images/Plus.svg';
 
 const { width } = Dimensions.get('window');
-const THEME_COLOR = '#A79E8D';
+
+// ==========================================
+// 統一更換為新版深夜藍灰配色變數
+// ==========================================
+const THEME_COLOR = '#2D3A48';      // Header 與 標題小槓主色
+const PAGE_BG = '#838D95';         // 下方區塊主要背景色
+const BUBBLE_BG = '#626C72';       // 說明欄內部背景色
 
 export default function ActionDetail({ actionId, parentTitle, onBack }) {
-  // 從 Store 取得全域清單資料庫與操作入口
+  const { colors } = useTheme();
   const favorites = useListStore((state) => state.favorites) || [];
   const myLists = useListStore((state) => state.myLists) || [];
   const addActionToSpecificList = useListStore((state) => state.addActionToSpecificList);
 
-  // 控制右上角彈出選單的狀態
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // 💡 1. 全域智慧大檢索
+  // ==========================================
+  // 【方案 A】Header 按鈕專屬動態核心
+  // ==========================================
+  const backAnimScale = useRef(new Animated.Value(1)).current;
+  const plusAnimScale = useRef(new Animated.Value(1)).current;
+
+  const animateScale = (animValue, toValue, isSpring = false) => {
+    if (isSpring) {
+      Animated.spring(animValue, { toValue, friction: 5, tension: 40, useNativeDriver: true }).start();
+    } else {
+      Animated.timing(animValue, { toValue, duration: 100, useNativeDriver: true }).start();
+    }
+  };
+
   let actionData;
   if (parentTitle === '喜愛清單') {
     actionData = favorites.find(item => item.id === actionId);
@@ -37,29 +57,24 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
     }
   }
 
-  // 💡 2. 右上角點擊按鈕，直接展開自訂 Modal
   const handleAddActionPress = () => {
     if (!actionData) return;
     setIsMenuVisible(true);
   };
 
-  // 💡 3. 真正執行寫入與重複攔截提示
   const handleSelectTargetList = (targetList) => {
     setIsMenuVisible(false);
     if (!addActionToSpecificList) return;
 
-    // 呼叫 Store 核心大腦（內部已包含防重複機制）
     const isSuccess = addActionToSpecificList(targetList.id, actionData);
 
     if (isSuccess) {
-      // 🧼 移除今日清單特例判斷，直接讀取自創清單的 title
       Alert.alert('成功', `已將「${actionData.name}」成功加入 ${targetList.title || '未命名清單'}！`);
     } else {
       Alert.alert('系統提示', `動作已在該清單`);
     }
   };
 
-  // 💡 4. 點擊「建立新的清單...」
   const handleCreateNewList = () => {
     setIsMenuVisible(false);
     
@@ -76,7 +91,6 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
               return;
             }
             
-            // 複製出一份帶有新唯一 ID 的動作資料
             const uniqueNewAction = {
               ...actionData,
               id: `${actionData.id}_bulk_${Date.now()}_0_${Math.floor(Math.random() * 100)}`
@@ -96,13 +110,12 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
 
   const validLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
 
-  // 若真的找不到資料的防錯顯示
   if (!actionData) return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerWrapper}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <TurnBackIcon width={24} height={24} />
+            <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" />
           </Pressable>
           <Text style={styles.headText}>找不到資料</Text>
           <View style={{ width: 40 }} />
@@ -115,23 +128,40 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]} edges={['top']}>
+      <StatusBar style="light" />
+
       {/* 1. 固定 Header */}
-      <View style={styles.headerWrapper}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
-          <Pressable onPress={onBack} style={styles.iconButton}>
-            <TurnBackIcon width={24} height={24} />
+          {/* 【方案 A】返回鍵 Q彈化 */}
+          <Pressable 
+            onPressIn={() => animateScale(backAnimScale, 0.92)}
+            onPressOut={() => animateScale(backAnimScale, 1, true)}
+            onPress={onBack} 
+          >
+            <Animated.View style={[styles.iconButton, { transform: [{ scale: backAnimScale }] }]}>
+              <TurnBackIcon width={20} height={20} stroke="#fff" color="#fff" />
+            </Animated.View>
           </Pressable>
+
           <Text style={styles.headText}>{actionData.name}</Text>
           
-          <Pressable onPress={handleAddActionPress} style={styles.iconButton}>
-            <PlusIcon width={24} height={24} />
+          {/* 【方案 A】加號鍵 Q彈化 */}
+          <Pressable 
+            onPressIn={() => animateScale(plusAnimScale, 0.92)}
+            onPressOut={() => animateScale(plusAnimScale, 1, true)}
+            onPress={handleAddActionPress} 
+          >
+            <Animated.View style={[styles.iconButton, { transform: [{ scale: plusAnimScale }] }]}>
+              <PlusIcon width={16} height={16} stroke="#fff" color="#fff" />
+            </Animated.View>
           </Pressable>
         </View>
       </View>
 
       <View style={styles.mainContainer}>
-        {/* 2. 固定圖片區域 */}
+        {/* 2. 固定圖片區域：保持精準純白背景 */}
         <View style={styles.imageSection}>
           {actionData.img ? (
             <Image 
@@ -144,8 +174,8 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
           )}
         </View>
 
-        {/* 3. 獨立捲動內容區塊 */}
-        <View style={styles.contentWrapper}>
+        {/* 3. 獨立捲動內容區塊：背景完全與設計圖同步翻新 */}
+        <View style={[styles.contentWrapper, { backgroundColor: colors.headerBg }]}>
           <ScrollView 
             style={styles.contentScroll} 
             showsVerticalScrollIndicator={false}
@@ -154,10 +184,10 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
             {/* 動作步驟 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <View style={styles.indicator} />
+                <View style={[styles.indicator, { backgroundColor: colors.darkNavy }]} />
                 <Text style={styles.sectionTitle}>動作步驟</Text>
               </View>
-              <View style={styles.textBubble}>
+              <View style={[styles.textBubble, { backgroundColor: colors.contentBg }]}>
                 <Text style={styles.contentText}>{actionData.steps || "暫無詳細說明"}</Text>
               </View>
             </View>
@@ -165,10 +195,10 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
             {/* 注意事項 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <View style={styles.indicator} />
+                <View style={[styles.indicator, { backgroundColor: colors.darkNavy }]} />
                 <Text style={styles.sectionTitle}>注意事項</Text>
               </View>
-              <View style={styles.textBubble}>
+              <View style={[styles.textBubble, { backgroundColor: colors.contentBg }]}>
                 <Text style={styles.contentText}>{actionData.notice || "請保持呼吸，若感疼痛請停止。"}</Text>
               </View>
             </View>
@@ -178,7 +208,7 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
         </View>
       </View>
 
-      {/* 右上角懸浮下拉彈出選單（靜態穩定、去今日清單化版） */}
+      {/* 右上角懸浮下拉彈出選單 */}
       <Modal
         visible={isMenuVisible}
         transparent={true}
@@ -195,13 +225,10 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
                       style={styles.menuItem}
                       onPress={() => handleSelectTargetList(list)}
                     >
-                      {/* 🧼 移除今日清單特例判斷，直接渲染 list.title */}
                       <Text style={styles.menuItemText}>
                         {list.title || '未命名清單'}
                       </Text>
                     </Pressable>
-                    
-                    {/* 清單項目物理上下間距 */}
                     <View style={{ height: 16, backgroundColor: 'transparent' }} />
                   </View>
                 ))
@@ -230,26 +257,59 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: THEME_COLOR },
-  headerWrapper: { backgroundColor: THEME_COLOR, height: 95, justifyContent: 'center', zIndex: 10 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15 },
-  iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  headText: { fontSize: 24, fontWeight: 'bold', color: '#000' },
+  headerWrapper: { backgroundColor: THEME_COLOR, height: 80, justifyContent: 'center', zIndex: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+  
+  // M3 規格圓形 IconButton
+  iconButton: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    backgroundColor: 'rgba(255, 255, 255, 0.12)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  headText: { fontSize: 22, fontWeight: '700', color: '#fff', letterSpacing: 0.5 }, 
   mainContainer: { flex: 1, backgroundColor: '#fff' },
-  imageSection: { width: '100%', height: 400, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', padding: 30, zIndex: 1 },
+  imageSection: { width: '100%', height: 410, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', padding: 20, zIndex: 1 },
   mainImage: { width: '100%', height: '100%' },
+  
+  // ==========================================
+  // 【顏色翻新】大圓角浮層背景，完美與設計圖同步改為 838D95
+  // ==========================================
   contentWrapper: {
-    flex: 1, backgroundColor: '#fff', marginTop: -20, borderTopLeftRadius: 35, borderTopRightRadius: 35,
-    shadowColor: "#000", shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 10,
-    zIndex: 5, overflow: 'hidden', 
+    flex: 1, 
+    backgroundColor: PAGE_BG, // 變更為 838D95
+    marginTop: -10, 
+    borderTopLeftRadius: 30, 
+    borderTopRightRadius: 30,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: -4 }, 
+    shadowOpacity: 0.06, 
+    shadowRadius: 8, 
+    elevation: 8,
+    zIndex: 5, 
+    overflow: 'hidden', 
   },
   contentScroll: { flex: 1 },
-  scrollInside: { paddingHorizontal: 25, paddingTop: 30, paddingBottom: 20 },
-  section: { marginBottom: 35 },
+  scrollInside: { paddingHorizontal: 24, paddingTop: 30, paddingBottom: 20 },
+  section: { marginBottom: 30 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  
+  // 旁邊的垂直短槓顏色改為 2D3A48 主色
   indicator: { width: 4, height: 20, backgroundColor: THEME_COLOR, marginRight: 10, borderRadius: 2 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  textBubble: { backgroundColor: '#F7F7F7', padding: 20, borderRadius: 18 },
-  contentText: { fontSize: 16, color: '#555', lineHeight: 28 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
+  
+  // ==========================================
+  // 【顏色翻新】說明欄內框背景改為 626C72
+  // ==========================================
+  textBubble: { 
+    backgroundColor: BUBBLE_BG, // 變更為 626C72
+    padding: 20, 
+    borderRadius: 18 
+  },
+  // 將說明的內文文字顏色改為高清晰的純白色
+  contentText: { fontSize: 15, color: '#fff', lineHeight: 26, fontWeight: '500' },
 
   modalOverlay: {
     flex: 1,
@@ -257,7 +317,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 130,                             
+    top: 100,                             
     right: 20,
     width: 200,                         
     maxHeight: 450,                      

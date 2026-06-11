@@ -1,34 +1,60 @@
-import React, { useState } from 'react';
-import { FlatList, Pressable, View, Text, StyleSheet, Alert, Image, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Pressable, View, Text, StyleSheet, Alert, Image, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; // 引入路由
-import ListScroll from './ListScroll';
-import PlusIcon from '../assets/images/Plus.svg';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import useListStore from '../store/useListStore';
-import TurnBackIcon from '../assets/images/TurnBack.svg';
+import { useTheme } from '../context/ThemeContext';
+import { auth } from '../config/firebase';
 
-// 💡 移除 require 圖片路徑，避免編譯報錯；未來直接對齊 Firestore Document 結構
+
+// 引入自訂 SVG 圖示
+import TurnBackIcon from '../assets/images/TurnBack.svg';
+import PlusIcon from '../assets/images/Plus.svg';
+
+const { width } = Dimensions.get('window');
+
+// ==========================================
+// 統一更換為新版深夜藍灰配色變數
+// ==========================================
+const THEME_COLOR = '#2D3A48';       // Header 與 摺疊文字主色
+const PAGE_BG = '#838D95';          // 主要大背景色
+const FLOAT_BTN_COLOR = '#7F8CDA';  // 右下角懸浮加號按鈕色
+
+// 引入 3 張去背小人圖片
+const SMALL_GUY_1 = require('../assets/images/SmallGuys/SmallGuy1.png');
+const SMALL_GUY_2 = require('../assets/images/SmallGuys/SmallGuy2.png');
+const SMALL_GUY_3 = require('../assets/images/SmallGuys/SmallGuy3.png');
+
+// 根據 index 動態計算並輪流對應小人圖片 (1 -> 2 -> 3 -> 1)
+const getSmallGuyImage = (index) => {
+  const modulo = index % 3;
+  if (modulo === 0) return SMALL_GUY_1;
+  if (modulo === 1) return SMALL_GUY_2;
+  return SMALL_GUY_3;
+};
+
 const recommend = [
   {
     id: 'rec_full_body',
     name: '全身伸展',
     actions: [
-      { id: 'm2', name: '眼鏡蛇式', detail: '骨盆保持貼地，下背部不要感到劇烈壓迫。', time: '00:30', img: null },
-      { id: 'm3', name: '鳥犬式', detail: '專注於身體的平衡與穩定。', time: '00:30', img: null }
+      { id: 'm2', name: '眼鏡蛇式', detail: '骨盆保持貼地。', time: '00:30', img: null },
+      { id: 'm3', name: '鳥犬式', detail: '專注於身體的平衡。', time: '00:30', img: null }
     ]
   },
   {
     id: 'rec_upper_limb',
     name: '上肢伸展',
     actions: [
-      { id: 'b2', name: '背手下壓', detail: '過程中保持挺胸，不要駝背。', time: '00:30', img: null }
+      { id: 'b2', name: '背手下壓', detail: '過程中保持挺胸。', time: '00:30', img: null }
     ]
   },
   {
     id: 'rec_back',
     name: '背部伸展',
     actions: [
-      { id: 'l1', name: '貓式伸展', detail: '動作隨著呼吸頻率進行，感受脊椎活動。', time: '00:30', img: null }
+      { id: 'l1', name: '貓式伸展', detail: '動作隨著呼吸頻率。', time: '00:30', img: null }
     ]
   },
   {
@@ -40,32 +66,71 @@ const recommend = [
   },
 ];
 
+// ==========================================
+// 【方案 A 核心】通用的 Q 彈微互動封裝組件
+// ==========================================
+const AnimatedPressable = ({ children, style, onPress, onLongPress, scaleTo = 0.96 }) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.timing(scaleValue, { toValue: scaleTo, duration: 100, useNativeDriver: true }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleValue, { toValue: 1, friction: 5, tension: 40, useNativeDriver: true }).start();
+  };
+
+  return (
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress} onLongPress={onLongPress} style={{ width: '100%' }}>
+      <Animated.View style={[style, { transform: [{ scale: scaleValue }] }]}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 export default function MyList() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [recommendItem] = useState(recommend);
+  const settings = useListStore((state) => state.settings);
 
-  // 取得喜愛清單與我的清單
   const favorites = useListStore((state) => state.favorites) || [];
-  const myLists = useListStore((state) => state.myLists) || [];
 
+  const calculateDuration = (actions) => {
+    if (!actions || actions.length === 0) return '約0秒';
+    const parseT = (str, fallback) => {
+      const parts = (str || '').split(':');
+      if (parts.length === 2) {
+        const t = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        return t > 0 ? t : fallback;
+      }
+      return fallback;
+    };
+    const defaultSec = parseT(settings?.defaultWorkoutTime, 30);
+    const restSec = parseT(settings?.restTime, 15);
+    let total = 0;
+    actions.forEach(act => { total += parseT(act.time, defaultSec); });
+    total += Math.max(0, actions.length - 1) * restSec;
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    if (mins === 0) return `約${secs}秒`;
+    if (secs === 0) return `約${mins}分鐘`;
+    return `約${mins}分${secs}秒`;
+  };
+  const myLists = useListStore((state) => state.myLists) || [];
   const removeList = useListStore((state) => state.removeList);
 
-  // 清單展開收合
-  const [isShow, showed] = useState(false);
-  const showNum = isShow ? recommendItem : recommendItem.slice(0, 0);
-
-  const [isMyShow, Myshowed] = useState(false);
-
+  // 摺疊控制
+  const [isShow, showed] = useState(true); 
+  const [isMyShow, Myshowed] = useState(true); 
 
   const userCustomLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
-
-  // 讓我的清單收合控制改為讀取過濾後的乾淨陣列
-  const MyshowNum = isMyShow ? userCustomLists : userCustomLists.slice(0, 0);
 
   const handlongPress = (id, title) => {
     Alert.alert(
       '刪除清單',
-      `確定要刪除 ${title} 清單嗎？`,
+      `確定要刪除「${title}」清單嗎？`,
       [
         { text: '取消', style: 'cancel' },
         { text: '刪除', style: 'destructive', onPress: () => removeList(id) },
@@ -73,122 +138,168 @@ export default function MyList() {
     );
   };
 
+  const handleCreate=()=>{
+    const user=auth.currentUser;
+    if(!user){
+      Alert.alert('尚未登入','請先進行登入作業');
+      return;
+    }
+    router.push('/create');
+  }
+
+
+  // ==========================================
+  // 【方案 A】非列表按鈕的專屬動態控制
+  // ==========================================
+  const recArrowScale = useRef(new Animated.Value(1)).current;
+  const myArrowScale = useRef(new Animated.Value(1)).current;
+  const plusBtnScale = useRef(new Animated.Value(1)).current;
+
+  const animateScale = (animValue, toValue, isSpring = false) => {
+    if (isSpring) {
+      Animated.spring(animValue, { toValue, friction: 5, tension: 40, useNativeDriver: true }).start();
+    } else {
+      Animated.timing(animValue, { toValue, duration: 100, useNativeDriver: true }).start();
+    }
+  };
+
+  // 渲染統一大卡片的內部佈局
+  const renderCardContent = (titleText, actions, imageSource) => (
+    <>
+      <View style={styles.cardLeftContent}>
+        <Text style={styles.cardMainTitle}>{titleText}</Text>
+        <Text style={styles.cardSubData}>{actions.length}項</Text>
+        <Text style={styles.cardSubData}>{calculateDuration(actions)}</Text>
+      </View>
+      <View style={styles.cardRightImageContainer}>
+        <Image source={imageSource} style={styles.guyImage} resizeMode="contain" />
+      </View>
+    </>
+  );
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#A79E8D' }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.darkNavy }]} edges={['top']}>
+      <StatusBar style="light" />
+
       {/* 1. Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.darkNavy }]}>
         <Text style={styles.headText}>我的清單</Text>
       </View>
 
-      {/* 2. 內容區塊（只純粹包裹 ScrollView） */}
-      <View style={{ flex: 1, backgroundColor: '#C1B69C' }}>
+      {/* 2. 內容主要區塊 */}
+      <View style={[styles.mainContentArea, { backgroundColor: colors.headerBg }]}>
         <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
           <View style={styles.listCon}>
 
-            {/* 💡 核心修改：移除今日清單，將喜愛清單調整為寬度大卡片，整體置中排版 */}
-            <View style={{ paddingHorizontal: 15, alignItems: 'center', marginBottom: 10 }}>
-              <View style={[styles.listitem, { width: '100%' }]}>
-                <Text style={styles.listText}>喜愛</Text>
-                <Pressable
-                  style={[styles.card, { width: '100%', height: 120 }]} // 💡 高度稍微拉高到 120 更有大圖氣勢
-                  onPress={() => {
-                    router.push({
-                      pathname: '/exerciseDetail',
-                      params: { name_zh: '喜愛清單', mode: 'favorites' }
-                    });
-                  }}
-                >
-                  <Image
-                    source={require('../assets/images/ListPic/Favorite.png')}
-                    style={{ width: '100%', height: '100%', borderRadius: 10 }}
-                    resizeMode="cover"
-                  />
-                </Pressable>
-              </View>
+            {/* 【喜愛清單卡片】 */}
+            <View style={styles.categoryBlock}>
+              <Text style={styles.sectionHeaderLabel}>喜愛</Text>
+              <AnimatedPressable
+                style={styles.modernContentCard}
+                onPress={() => {
+                  router.push({
+                    pathname: '/exerciseDetail',
+                    params: { name_zh: '喜愛清單', mode: 'favorites' }
+                  });
+                }}
+              >
+                {renderCardContent('喜愛動作', favorites, SMALL_GUY_1)}
+              </AnimatedPressable>
             </View>
 
-            {/* 推薦與我的 */}
-            <View>
-              {/* 推薦 */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
-                <Text style={styles.listText2}>推薦</Text>
-                <Pressable onPress={() => showed(!isShow)}>
-                  <View>
-                    <TurnBackIcon
-                      width={24}
-                      height={24}
-                      style={{ transform: [{ rotate: isShow ? '-90deg' : '90deg' }] }}
-                    />
-                  </View>
+            {/* 【推薦清單區塊】 */}
+            <View style={styles.categoryBlock}>
+              <View style={styles.foldHeader}>
+                <Text style={styles.sectionHeaderLabel}>推薦</Text>
+                <Pressable 
+                  onPressIn={() => animateScale(recArrowScale, 0.8)}
+                  onPressOut={() => animateScale(recArrowScale, 1, true)}
+                  onPress={() => showed(!isShow)}
+                >
+                  <Animated.View style={{ transform: [{ scale: recArrowScale }, { rotate: isShow ? '0deg' : '180deg' }] }}>
+                    <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" style={styles.arrowRotated} />
+                  </Animated.View>
                 </Pressable>
               </View>
 
-              {/* 修正推薦清單渲染：回歸渲染 recommend 陣列（不與 userCustomLists 混淆） */}
-              <View style={styles.listitem2}>
-                {showNum.map((item) => (
-                  <ListScroll
-                    key={item.id}
-                    part={{
-                      id: item.id,
-                      name: item.name,
-                      pathname: '/exerciseDetail', // 指定跳轉去 LalaDetail 模板頁面
-                      params: {
-                        name_zh: item.name,        // 傳遞名稱（如「全身伸展」）讓 LalaDetail 順利至 stretchData 撈取動作
-                        mode: 'recommend',         // 標記為推薦模式
-                        id: item.id
-                      }
-                    }}
-                  />
-                ))}
-              </View>
-
-              {/* 我的清單 */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 }}>
-                <Text style={styles.listText2}>我的</Text>
-                <Pressable onPress={() => Myshowed(!isMyShow)}>
-                  <View>
-                    <TurnBackIcon
-                      width={24}
-                      height={24}
-                      style={{ transform: [{ rotate: isMyShow ? '-90deg' : '90deg' }] }}
-                    />
-                  </View>
-                </Pressable>
-              </View>
-
-              {/* 修正我的清單渲染：正確比對與讀取 userCustomLists */}
-              <View style={styles.listitem2}>
-                {userCustomLists.length === 0 ? (
-                  <View style={{ paddingVertical: 10 }}>
-                    <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
-                  </View>
-                ) : (
-                  MyshowNum.map((item) => (
-                    <ListScroll
+              {isShow && (
+                <View style={styles.cardGridGap}>
+                  {recommendItem.map((item, index) => (
+                    <AnimatedPressable
                       key={item.id}
-                      part={{
-                        id: item.id,
-                        name: item.title,
-                        pathname: '/emptyList',
-                        params: { id: item.id, name: item.title }
+                      style={styles.modernContentCard}
+                      onPress={() => {
+                        router.push({
+                          pathname: '/exerciseDetail',
+                          params: { name_zh: item.name, mode: 'recommend', id: item.id }
+                        });
                       }}
-                      onLongPress={() => handlongPress(item.id, item.title)}
-                    />
-                  ))
-                )}
+                    >
+                      {renderCardContent(item.name, item.actions, getSmallGuyImage(index))}
+                    </AnimatedPressable>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* 【我的自訂清單區塊】 */}
+            <View style={styles.categoryBlock}>
+              <View style={styles.foldHeader}>
+                <Text style={styles.sectionHeaderLabel}>我的</Text>
+                <Pressable 
+                  onPressIn={() => animateScale(myArrowScale, 0.8)}
+                  onPressOut={() => animateScale(myArrowScale, 1, true)}
+                  onPress={() => Myshowed(!isMyShow)}
+                >
+                  <Animated.View style={{ transform: [{ scale: myArrowScale }, { rotate: isMyShow ? '0deg' : '180deg' }] }}>
+                    <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" style={styles.arrowRotated} />
+                  </Animated.View>
+                </Pressable>
               </View>
+
+              {isMyShow && (
+                <View style={styles.cardGridGap}>
+                  {userCustomLists.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.alertText}>點擊下方 + 建立你的清單</Text>
+                    </View>
+                  ) : (
+                    userCustomLists.map((item, index) => (
+                      <AnimatedPressable
+                        key={item.id}
+                        style={styles.modernContentCard}
+                        onPress={() => {
+                          router.push({
+                            pathname: '/emptyList',
+                            params: { id: item.id, name: item.title }
+                          });
+                        }}
+                        onLongPress={() => handlongPress(item.id, item.title)}
+                      >
+                        {renderCardContent(item.title, item.actions || [], getSmallGuyImage(index))}
+                      </AnimatedPressable>
+                    ))
+                  )}
+                </View>
+              )}
             </View>
 
           </View>
+          {/* 優化：稍微增加底部留白距離，避免最後一張卡片被浮動按鈕大範圍遮擋 */}
+          <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
-      {/* 3. 加號建立清單按鈕 */}
+      {/* 3. 【方案 A】右下角加號按鈕微互動升級 */}
       <Pressable
-        onPress={() => router.push('/create')}
-        style={styles.btn}
+        onPressIn={() => animateScale(plusBtnScale, 0.9)}
+        onPressOut={() => animateScale(plusBtnScale, 1, true)}
+        onPress={handleCreate}
+        style={styles.floatingBtnWrapper}
       >
-        <PlusIcon width={35} height={35} stroke={'#000'} strokeWidth={2.5} fill="none" />
+        <Animated.View style={[styles.btn, { backgroundColor: colors.floatBtn, transform: [{ scale: plusBtnScale }] }]}>
+          <PlusIcon width={32} height={32} stroke={'#000'} strokeWidth={2.5} fill="none" />
+        </Animated.View>
       </Pressable>
 
     </SafeAreaView>
@@ -196,56 +307,67 @@ export default function MyList() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: THEME_COLOR },
+  header: { height: 80, backgroundColor: THEME_COLOR, alignItems: 'center', justifyContent: 'center' },
+  headText: { fontSize: 24, fontWeight: '700', color: '#fff', letterSpacing: 1 },
+  
+  mainContentArea: { flex: 1, backgroundColor: PAGE_BG },
+  scrollInner: { flexGrow: 1 },
+  listCon: { paddingVertical: 30, paddingHorizontal: 16 },
+  
+  categoryBlock: { marginBottom: 20 },
+  foldHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
+  sectionHeaderLabel: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 15 },
+  
+  arrowRotated: { transform: [{ rotate: '-90deg' }] }, 
+  cardGridGap: { gap: 12, width: '100%' },
+
+  modernContentCard: {
     width: '100%',
-    height: '100%',
-  },
-  header: {
-    height: 95,
-    backgroundColor: '#A79E8D',
+    height: 115,
+    backgroundColor: '#FFF',
+    borderRadius: 24, 
+    flexDirection: 'row',
+    paddingLeft: 24,
+    paddingRight: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    marginValue: 4,
   },
-  listCon: { paddingVertical: 20 },
-  listitem: { gap: 10, height: 'auto' },
-  listitem2: { gap: 10, height: 'auto', justifyContent: 'center', alignItems: 'center' },
-  list: { gap: 20, paddingHorizontal: 15 },
-  headText: { fontSize: 28, fontWeight: 'bold' },
-  listText: { fontSize: 18, fontWeight: 'bold' },
-  listText2: { fontSize: 18, fontWeight: 'bold', paddingLeft: 15, paddingVertical: 15 },
+  cardLeftContent: { flex: 1, justifyContent: 'center' },
+  cardMainTitle: { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 6 },
+  cardSubData: { fontSize: 12, color: '#666', fontWeight: '600', marginTop: 1 },
+  
+  cardRightImageContainer: { width: 100, height: '100%', justifyContent: 'center', alignItems: 'center' },
+  guyImage: { width: '100%', height: '90%' },
+
+  // ==========================================
+  // 【關鍵修正】提升 zIndex 層級、並向上挪移拉高底距，徹底免於導覽列遮擋
+  // ==========================================
+  floatingBtnWrapper: { 
+    position: 'absolute', 
+    right: 20, 
+    bottom: 150, // 從 30 大幅拉高到 90，完美浮在 TabBar 上方！
+    zIndex: 99999, // 提高層級，確保百分之百霸氣穿透並蓋在導覽列最上層
+  },
   btn: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FBFD97',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: FLOAT_BTN_COLOR,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 5,
   },
-  card: {
-    width: 190,
-    height: 100,
-    backgroundColor: '#FFF4EA',
-    borderRadius: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  alertText: {
-    fontSize: 14, color: '#666', fontWeight: '500'
-  },
-  scrollInner: {
-    flexGrow: 1,
-    gap: 15,
-  }
+  emptyContainer: { width: '100%', paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
+  alertText: { fontSize: 15, color: '#DDD', fontWeight: '600', letterSpacing: 0.5 }
 });

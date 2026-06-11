@@ -1,24 +1,47 @@
 {
   "expo": {
     "scheme": "acme",
-    "plugins": [
-      "expo-router"
-    ],
     "name": "lala",
     "slug": "lala",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1",
+            "useFrameworks": "dynamic"
+          }
+        }
+      ],
+      [
+        "@react-native-firebase/app",
+        {}
+      ],
+      [
+        "@react-native-firebase/auth",
+        {}
+      ]
+    ],
     "extra": {
       "router": {},
       "eas": {
         "projectId": "f2ff4200-00a8-4962-96d4-e24a5f44873e"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/f2ff4200-00a8-4962-96d4-e24a5f44873e"
     },
-    "android": { },
-    "ios": { }
+    "android": {
+      "googleServicesFile": "google-services.json",
+      "permissions": [],
+      "package": "com.rwei_app.lala"
+    },
+    "ios": {
+      "googleServicesFile": "GoogleService-Info.plist",
+      "infoPlist": {},
+      "bundleIdentifier": "com.rwei-app.lala"
+    }
   }
 }

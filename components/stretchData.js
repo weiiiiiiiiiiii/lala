@@ -14,7 +14,7 @@ export const ALL_STRETCHES = {
       name: '背手下壓', 
       detail: '雙手在背後互扣，手心向下延伸', 
       time: '00:30', 
-      img: require('../assets/images/PartStretch/Biceps/1.jpg'),
+      img: require('../assets/images/PartStretch/Biceps/1.png'),
       steps: "1. 雙手放在背後互扣，手心朝上。\n2. 慢慢將雙臂向下伸直並稍稍往上抬高。\n3. 挺胸，感受雙手前側與二頭肌的延展。",
       notice: "過程中保持挺胸，不要駝背，動作要緩慢平穩。"
     },
@@ -330,7 +330,7 @@ export const ALL_STRETCHES = {
       name: '背手下壓', 
       detail: '雙手在背後互扣，手心向下延伸', 
       time: '00:30', 
-      img: require('../assets/images/PartStretch/Biceps/1.jpg'),
+      img: require('../assets/images/PartStretch/Biceps/1.png'),
       steps: "1. 雙手放在背後互扣，手心朝上。\n2. 慢慢將雙臂向下伸直並稍稍往上抬高。\n3. 挺胸，感受雙手前側與二頭肌的延延展。",
       notice: "過程中保持挺胸，不要駝背，動作要緩慢平穩。"
     }

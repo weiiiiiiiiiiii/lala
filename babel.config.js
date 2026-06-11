@@ -3,11 +3,10 @@ module.exports = function (api) {
   return {
     presets: [
       ['babel-preset-expo', { jsxImportSource: 'nativewind' }],
-      'nativewind/babel', // 如果你是 NativeWind v2 / v4，請根據官方文件確認這行的位置
+      'nativewind/babel', 
     ],
     plugins: [
-      // 確保你的其他插件都在這個 plugins 陣列裡面
-      // ⚠️ 絕對不能在某個 plugin 內部又寫一個 plugins: [...]
+      // 🌟 新版 Vision Camera 不需要另外寫相機插件，只需要保留 Reanimated 即可！
       'react-native-reanimated/plugin', 
     ],
   };

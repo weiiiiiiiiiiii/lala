@@ -1,18 +1,31 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet, Text, View, ScrollView,
-  TouchableOpacity, Dimensions, Image
+  Pressable, Dimensions, Image, Animated
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
+import { useTheme } from '../context/ThemeContext';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const categories = ["常用", "手臂", "肩頸", "胸部", "背部與腰部", "臀部", "下肢", "其他"];
-const THEME_COLOR = '#A79E8D';
-const CONTENT_BG = '#C2B39A';
-const LOGO_IMAGE = require('../assets/images/Logo/Logo_none.png');
+const categories = ["常用", "肩頸", "手臂", "胸部", "背部與腰部", "臀部", "下肢", "其他"];
+
+const THEME_COLOR = '#2D3A48';       
+const PAGE_BG = '#838D95';        
+const CARD_CONTAINER_BG = '#424E58'; 
+
+const bodyMainImages = {
+  "常用": require('../assets/images/Body/Main.png'),
+  "肩頸": require('../assets/images/Body/NeckShoulder.png'),
+  "手臂": require('../assets/images/Body/Arms.png'),
+  "胸部": require('../assets/images/Body/Chest.png'),
+  "背部與腰部": require('../assets/images/Body/BackWaist.png'),
+  "臀部": require('../assets/images/Body/Glutes.png'),
+  "下肢": require('../assets/images/Body/LowerLimbs.png'),
+  "其他": require('../assets/images/Body/Main.png'),
+};
 
 const bodyPartImages = {
   Neck: require('../assets/images/BodyPart/Neck.png'),
@@ -22,7 +35,7 @@ const bodyPartImages = {
   Forearms: require('../assets/images/BodyPart/Forearms.png'),
   Shoulders: require('../assets/images/BodyPart/Shoulders.png'),
   Pectorals: require('../assets/images/BodyPart/Pectorals.png'),
-  Latissimus: require('../assets/images/BodyPart/Latissimus Dorsi.png'),
+  Latissimus: require('../assets/images/BodyPart/Latissimus Dorsi.png'), 
   Lower: require('../assets/images/BodyPart/Lower Back.png'),
   Gluteus: require('../assets/images/BodyPart/Gluteus Maximus.png'),
   Piriformis: require('../assets/images/BodyPart/Piriformis.png'),
@@ -75,21 +88,48 @@ const stretchData = {
   ],
 };
 
-export default function Home() {
-  const router = useRouter(); 
-  const scrollRef = useRef(null);
-  const sectionLayouts = useRef({});
+// ==========================================
+// 【方案 A 核心】封裝通用的 Q 彈微互動 Pressable 元件
+// ==========================================
+const AnimatedPressable = ({ children, style, onPress, scaleTo = 0.95 }) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
-  const scrollToSection = (category) => {
-    const y = sectionLayouts.current[category];
-    if (y !== undefined) {
-      scrollRef.current.scrollTo({ y, animated: true });
-    }
+  const onPressIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: scaleTo,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
+  const onPressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 5,  // 柔和Ｑ彈係數
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable onPressIn={onPressIn} onPressOut={onPressOut} onPress={onPress}>
+      <Animated.View style={[style, { transform: [{ scale: scaleValue }] }]}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
+export default function Home() {
+  const router = useRouter();
+  const { colors, themeMode } = useTheme(); // 💡 解構引入 themeMode 用於處理精細的字體對比度
+  const [activeCategory, setActiveCategory] = useState("常用");
+
+  // 【方案 A 優化】動作卡片導入彈性互動，scaleTo 設為微量 0.97
   const ExerciseCard = ({ zh, en, image }) => (
-    <TouchableOpacity 
+    <AnimatedPressable 
       style={styles.card}
+      scaleTo={0.97}
       onPress={() => router.push({
         pathname: '/exerciseDetail',
         params: { name_zh: zh }
@@ -108,65 +148,92 @@ export default function Home() {
           />
         )}
       </View>
-    </TouchableOpacity>
-  );
-
-  const Section = ({ title }) => (
-    <View
-      onLayout={(event) => {
-        sectionLayouts.current[title] = event.nativeEvent.layout.y;
-      }}
-      style={styles.sectionContainer}
-    >
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.cardGrid}>
-        {stretchData[title] && stretchData[title].map((item) => (
-          <ExerciseCard 
-            key={item.id} 
-            zh={item.name_zh} 
-            en={item.name_en} 
-            image={bodyPartImages[item.imageKey]} 
-          />
-        ))}
-      </View>
-    </View>
+    </AnimatedPressable>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.darkNavy }]} edges={['top']}>
+      <StatusBar style="light" />
 
-      <View style={{ backgroundColor: THEME_COLOR, height: 95 }}>
-        <View style={styles.header}>
-          {/* 將原本的 View 替換為 Image */}
-          <Image source={LOGO_IMAGE} style={styles.logoImage} resizeMode="contain" />
+      {/* Header */}
+      <View style={[styles.headerContainer, { backgroundColor: colors.headerBg }]}>
+        <View style={[styles.header, { backgroundColor: colors.darkNavy }]}>
           <Text style={styles.appTitle}>Emo 伸</Text>
-        </View>
-
-        <View style={styles.categoryWrapper}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryBar}>
-            {categories.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.categoryItem}
-                onPress={() => scrollToSection(item)}
-              >
-                <Text style={styles.categoryText}>{item}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
       </View>
 
-      <View style={{ flex: 1, backgroundColor: CONTENT_BG }}>
-        <ScrollView ref={scrollRef} style={styles.contentScroll}>
-          <View style={{ paddingTop: 20 }}>
-            {categories.map((item, index) => (
-              <Section key={index} title={item} />
-            ))}
-          </View>
-          <View style={{ height: 100 }} />
-        </ScrollView>
+      {/* 主交互區 */}
+      <View style={[styles.interactiveBodyContainer, { backgroundColor: colors.headerBg }]}>
+        
+        {/* 左側：按鈕區 */}
+        <View style={styles.interactiveLeftNodes}>
+          {categories.map((item, index) => {
+            const isActive = activeCategory === item;
+            const isRightSide = index % 2 !== 0; 
+            const displayName = item === "背部與腰部" ? "背腰" : item;
+
+            // 💡 智慧連動按鈕沒被選中時的字體顏色：暗色模式為白字，亮色模式為深色底下的特製深褐灰
+            const inactiveTextColor = themeMode === 'dark' ? '#fff' : '#4A4238';
+
+            return (
+              <View 
+                key={index} 
+                style={[
+                  styles.nodeRow, 
+                  isRightSide ? { justifyContent: 'flex-end', paddingRight: 5 } : { justifyContent: 'flex-start', paddingLeft: 10 }
+                ]}
+              >
+                {/* 【方案 A 優化】8 個部位按鈕套用獨立微變換動態 */}
+                <AnimatedPressable
+                  style={[
+                    styles.nodeCircle,
+                    // 💡 智慧防死角：未選中讀取 colors.lightBg，選中讀取 colors.activeBtn 並補上 logoutBg 邊框
+                    { backgroundColor: isActive ? colors.activeBtn : colors.lightBg },
+                    isActive && { borderWidth: 1.5, borderColor: colors.logoutBg }
+                  ]}
+                  scaleTo={0.9}
+                  onPress={() => setActiveCategory(item)}
+                >
+                  <Text style={[
+                    styles.nodeText,
+                    { color: isActive ? colors.darkNavy : inactiveTextColor } // 💡 動態字體色彩對比度連動
+                  ]}>
+                    {displayName}
+                  </Text>
+                </AnimatedPressable>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* 右側：人體示意大圖 */}
+        <View style={styles.interactiveRightBody} pointerEvents="none">
+          <Image 
+            source={bodyMainImages[activeCategory]} 
+            style={styles.bodyMainImage}
+            resizeMode="contain"
+          />
+        </View>
+      </View>
+
+      {/* 下方卡片顯示區 */}
+      <View style={[styles.bottomCardContainerOuter, { backgroundColor: colors.headerBg }]}>
+        <View style={[styles.bottomCardWrapper, { backgroundColor: colors.logoutBg }]}>
+          <Text style={styles.sectionTitle}>{activeCategory}</Text>
+          <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
+            <View style={styles.cardGrid}>
+              {stretchData[activeCategory] && stretchData[activeCategory].map((item) => (
+                <ExerciseCard 
+                  key={item.id} 
+                  zh={item.name_zh} 
+                  en={item.name_en} 
+                  image={bodyPartImages[item.imageKey]} 
+                />
+              ))}
+            </View>
+            <View style={{ height: 20 }} />
+          </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -177,96 +244,130 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME_COLOR,
   },
+  headerContainer: {
+    backgroundColor: PAGE_BG,
+  },
   header: {
-    paddingTop: 5,
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    justifyContent: 'center', 
     backgroundColor: THEME_COLOR,
-  },
-  // 替換原本的 logoPlaceholder 樣式
-  logoImage: {
-    width: 35,
-    height: 35,
-    marginRight: 10,
+    borderBottomLeftRadius: 35,  
+    borderBottomRightRadius: 35, 
   },
   appTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
+    letterSpacing: 2,
   },
-  categoryWrapper: {
-    paddingTop: 15,
-    backgroundColor: THEME_COLOR,
+  interactiveBodyContainer: {
+    height: height * 0.47, 
+    backgroundColor: PAGE_BG,
+    flexDirection: 'row',
+    alignItems: 'center', 
   },
-  categoryBar: {
-    paddingHorizontal: 15,
-  },
-  categoryItem: {
-    backgroundColor: '#EAE0D5',
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    marginRight: 10,
-    height: 25,
+  interactiveLeftNodes: {
+    width: '35%', 
+    height: '100%', 
+    paddingLeft: 30, 
+    paddingVertical: 30, 
     justifyContent: 'center',
+    zIndex: 99, 
   },
-  categoryText: {
+  nodeRow: {
+    flex: 1, 
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  interactiveRightBody: {
+    width: '65%', 
+    height: '100%', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 5,
+    paddingTop: 10, 
+  },
+  bodyMainImage: {
+    width: '150%', 
+    height: '150%', 
+  },
+  nodeCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  nodeText: {
     fontSize: 12,
-    color: '#555',
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  bottomCardContainerOuter: {
+    flex: 1,
+    backgroundColor: PAGE_BG, 
+  },
+  bottomCardWrapper: {
+    flex: 1, 
+    borderTopLeftRadius: 30, 
+    borderTopRightRadius: 30,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    marginTop: 35, 
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 12,
   },
   contentScroll: {
     flex: 1,
-    paddingHorizontal: 15,
-  },
-  sectionContainer: {
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 15,
-    color: '#333',
   },
   cardGrid: {
-    flexDirection: 'row',
+    flexDirection: 'row', 
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   card: {
     flexDirection: 'row', 
-    marginBottom: 15,
-    width: 190,
-    height: 100,
+    marginBottom: 12,
+    width: (width - 16*2 - 12) / 2, 
+    height: 90,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingLeft: 10, 
+    borderRadius: 15,
+    paddingVertical: 8,
+    paddingLeft: 12, 
     paddingRight: 0,
-    shadowOffset: { width: 0, height: 4 },
     shadowColor: '#000',
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
     shadowOpacity: 0.1,
-    elevation: 2,
+    elevation: 3,
   },
   cardTextContainer: {
-    flex: 1,
+    flex: 1.2,
     justifyContent: 'center',
   },
   partNameZh: {
-    fontSize: 12, 
-    fontWeight: '600',
-    color: '#333',
-    lineHeight: 16,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#1A2530',
   },
   partNameEn: {
     fontSize: 10,
     color: '#666',
-    marginTop: 2,
+    marginTop: 1,
   },
   cardImageContainer: {
-    width: 75, 
-    height: '100%',
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
