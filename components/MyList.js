@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { Pressable, View, Text, StyleSheet, Alert, Image, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import useListStore from '../store/useListStore';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入自訂 SVG 圖示
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -88,6 +89,7 @@ const AnimatedPressable = ({ children, style, onPress, onLongPress, scaleTo = 0.
 
 export default function MyList() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [recommendItem] = useState(recommend);
 
   const favorites = useListStore((state) => state.favorites) || [];
@@ -141,16 +143,16 @@ export default function MyList() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* 1. Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.darkNavy }]}>
         <Text style={styles.headText}>我的清單</Text>
       </View>
 
       {/* 2. 內容主要區塊 */}
-      <View style={styles.mainContentArea}>
+      <View style={[styles.mainContentArea, { backgroundColor: colors.headerBg }]}>
         <ScrollView contentContainerStyle={styles.scrollInner} showsVerticalScrollIndicator={false}>
           <View style={styles.listCon}>
 
@@ -260,7 +262,7 @@ export default function MyList() {
         onPress={() => router.push('/create')}
         style={styles.floatingBtnWrapper}
       >
-        <Animated.View style={[styles.btn, { transform: [{ scale: plusBtnScale }] }]}>
+        <Animated.View style={[styles.btn, { backgroundColor: colors.floatBtn, transform: [{ scale: plusBtnScale }] }]}>
           <PlusIcon width={32} height={32} stroke={'#000'} strokeWidth={2.5} fill="none" />
         </Animated.View>
       </Pressable>

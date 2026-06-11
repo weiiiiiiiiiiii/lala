@@ -6,6 +6,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入萬能控色版返回鍵
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -27,14 +28,12 @@ const TEXT_YELLOW = '#FFFBDD';      // 時間數據與音量的柔黃色
 export default function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets(); // 💡 取得安全區域數據，用來與導覽列高度對齊
+  const { themeMode, setThemeMode, colors } = useTheme();
 
   // 使用者頭像與狀態資料夾 (邏輯完美保留)
   const [userPic, setUserpic] = useState(null);
   const [user, setUser] = useState(null);
   const [init, setInit] = useState(true);
-
-  // 💡 1. 亮暗模式狀態（預設為暗色模式 'dark'）
-  const [themeMode, setThemeMode] = useState('dark');
 
   // 💡 2. 音量狀態值（範圍 0 ~ 1，預設 0.8 代表 80%）
   const [volume, setVolume] = useState(0.8);
@@ -137,7 +136,7 @@ export default function Profile() {
   if (init) return null;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.headerBg }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* ==========================================
@@ -178,10 +177,10 @@ export default function Profile() {
       {/* ==========================================
           2. Lower Container：運動設定與其他區塊 (背景 626C72)
          ========================================== */}
-      <View style={styles.lowerSettingsContainer}>
+      <View style={[styles.lowerSettingsContainer, { backgroundColor: colors.contentBg }]}>
         
-        {/* 亮暗模式大膠囊列 (背景 838D95) */}
-        <View style={styles.themeToggleCapsule}>
+        {/* 亮暗模式大膠囊列 */}
+        <View style={[styles.themeToggleCapsule, { backgroundColor: colors.headerBg }]}>
           <Text style={styles.themeToggleLabel}>亮暗模式</Text>
           <View style={styles.toggleButtonsGroup}>
             
@@ -193,8 +192,8 @@ export default function Profile() {
               style={styles.themeIconButtonWrapper}
             >
               <Animated.View style={[
-                styles.themeIconBtn, 
-                themeMode === 'light' && styles.activeThemeBtn, // 💡 智慧底槽連動
+                styles.themeIconBtn,
+                themeMode === 'light' && { backgroundColor: colors.darkNavy },
                 { transform: [{ scale: sunBtnScale }] }
               ]}>
                 <Image 
@@ -216,8 +215,8 @@ export default function Profile() {
               style={styles.themeIconButtonWrapper}
             >
               <Animated.View style={[
-                styles.themeIconBtn, 
-                themeMode === 'dark' && styles.activeThemeBtn, // 💡 智慧底槽連動
+                styles.themeIconBtn,
+                themeMode === 'dark' && { backgroundColor: colors.darkNavy },
                 { transform: [{ scale: moonBtnScale }] }
               ]}>
                 <Image 
@@ -315,7 +314,7 @@ export default function Profile() {
           onPress={handleLogout}
           style={[styles.logoutBtnOuterWrapper, { bottom: 60 + insets.bottom }]}
         >
-          <Animated.View style={[styles.logoutBarBtn, { transform: [{ scale: logoutBtnScale }] }]}>
+          <Animated.View style={[styles.logoutBarBtn, { backgroundColor: colors.logoutBg, transform: [{ scale: logoutBtnScale }] }]}>
             <Text style={styles.logoutTextText}>登出</Text>
           </Animated.View>
         </Pressable>
@@ -329,7 +328,7 @@ export default function Profile() {
         onRequestClose={() => setIsPickerVisible(false)}
       >
         <View style={styles.pickerModalOverlay}>
-          <View style={styles.bottomSheetContainer}>
+          <View style={[styles.bottomSheetContainer, { backgroundColor: colors.headerBg }]}>
             
             {/* 頂部取消與完成動作列 */}
             <View style={styles.pickerHeaderActionBar}>

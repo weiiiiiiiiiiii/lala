@@ -1,4 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import { Alert, Button, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Systrace, Text, TextInput, View } from 'react-native';
 import { useState } from 'react';
@@ -20,6 +21,7 @@ const BTN_COLOR = '#9E554D';        // 註冊按鈕顏色
 
 export default function SignUp({ onBack }) {
     const router = useRouter();
+    const { colors } = useTheme();
 
     //頭像圖片
     const [photo, setPhoto] = useState(null);
@@ -98,7 +100,7 @@ export default function SignUp({ onBack }) {
 
     return (
 
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.contentBg }]} edges={['top', 'left', 'right']}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -122,7 +124,7 @@ export default function SignUp({ onBack }) {
                                     style={styles.img}
                                 />
                                 <View style={styles.smallEditBtn}>
-                                    <Edit width={16} height={16} stroke="#000"/>
+                                    <Edit width={16} height={16} stroke="#000" color="#424E58"/>
                                 </View>
                             </Pressable>
                             <View style={styles.hr}></View>
@@ -136,7 +138,7 @@ export default function SignUp({ onBack }) {
                             <View style={styles.signItemCon}>
                                 <View style={styles.itemCon}>
                                     <Text style={styles.nameText}>名稱</Text>
-                                    <View style={styles.inputCon}>
+                                    <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入名稱"
@@ -150,7 +152,7 @@ export default function SignUp({ onBack }) {
                                     <Text style={styles.nameText}>性別</Text>
 
                                     <Pressable
-                                        style={styles.inputCon}
+                                        style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}
                                         onPress={() => setIsmodal(true)}
                                     >
                                         <Text style={[styles.innerText, gender ? { opacity: 1 } : { opacity: 0.4 }]}>
@@ -161,7 +163,7 @@ export default function SignUp({ onBack }) {
                                 </View>
                                 <View style={styles.itemCon}>
                                     <Text style={styles.nameText}>電話</Text>
-                                    <View style={styles.inputCon}>
+                                    <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入電話"
@@ -173,7 +175,7 @@ export default function SignUp({ onBack }) {
                                 </View>
                                 <View style={styles.itemCon}>
                                     <Text style={styles.nameText}>電子郵件</Text>
-                                    <View style={styles.inputCon}>
+                                    <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入電子郵件"
@@ -187,7 +189,7 @@ export default function SignUp({ onBack }) {
                                 </View>
                                 <View style={styles.itemCon}>
                                     <Text style={styles.nameText}>密碼</Text>
-                                    <View style={styles.inputCon}>
+                                    <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請輸入密碼"
@@ -201,7 +203,7 @@ export default function SignUp({ onBack }) {
                                 </View>
                                 <View style={styles.itemCon}>
                                     <Text style={styles.nameText}>密碼確認</Text>
-                                    <View style={styles.inputCon}>
+                                    <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                         <TextInput
                                             style={styles.innerText}
                                             placeholder="請再次輸入密碼"

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert, LayoutAnimation, Platform, UIManager, Modal, FlatList, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar'; 
+import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入全域 Store
 import useListStore from '../store/useListStore';
@@ -60,6 +61,7 @@ const AnimatedPressable = ({ children, style, onPress, onLongPress, disabled, sc
 
 export default function EmptyList() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { id, name } = useLocalSearchParams();
 
   const myLists = useListStore((state) => state.myLists) || [];
@@ -269,11 +271,11 @@ export default function EmptyList() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* Header 區塊：完全複製自 LalaDetail */}
-      <View style={styles.headerWrapper}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           <Pressable 
             onPressIn={() => animateScale(backArrowScale, 0.92)}
@@ -392,7 +394,7 @@ export default function EmptyList() {
             onPress={handleSaveTime} // 這裡保持原先點擊邏輯入口
             style={{ width: '100%', alignItems: 'center' }}
           >
-            <Animated.View style={[styles.startBtn, { transform: [{ scale: startBtnScale }] }]}>
+            <Animated.View style={[styles.startBtn, { backgroundColor: colors.floatBtn, shadowColor: colors.floatBtn, transform: [{ scale: startBtnScale }] }]}>
               <Text style={styles.startBtnText}>開始</Text>
             </Animated.View>
           </Pressable>
@@ -450,7 +452,7 @@ export default function EmptyList() {
               );
             }}
           />
-          <Pressable style={styles.confirmButton} onPress={handleConfirmAddActions}>
+          <Pressable style={[styles.confirmButton, { backgroundColor: colors.floatBtn }]} onPress={handleConfirmAddActions}>
             <Text style={styles.buttonText}>確認選取</Text>
           </Pressable>
         </View>

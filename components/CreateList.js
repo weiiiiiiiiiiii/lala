@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Alert, Modal, FlatList, Animated, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar'; 
+import { StatusBar } from 'expo-status-bar';
 import useListStore from '../store/useListStore';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入萬能控色版返回鍵
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -16,6 +17,7 @@ const PAGE_BG = '#838D95';         // 主要大背景色
 const BUTTON_COLOR = '#7F8CDA';    // 建立大按鈕色
 
 export default function CreateList({ onBack }) {
+  const { colors } = useTheme();
   const [listname, setListname] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedActions, setSelectedActions] = useState([]);
@@ -55,12 +57,12 @@ export default function CreateList({ onBack }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.headerBg }]}>
         {/* 1. Header 增設返回鍵與新標題 */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.darkNavy }]}>
           <Pressable 
             onPressIn={() => animateScale(backAnimScale, 0.92)}
             onPressOut={() => animateScale(backAnimScale, 1, true)}
@@ -120,7 +122,7 @@ export default function CreateList({ onBack }) {
               onPress={handleCreate}
               style={{ width: '100%' }}
             >
-              <Animated.View style={[styles.createButton, { transform: [{ scale: createBtnAnimScale }] }]}>
+              <Animated.View style={[styles.createButton, { backgroundColor: colors.floatBtn, shadowColor: colors.floatBtn, transform: [{ scale: createBtnAnimScale }] }]}>
                 <Text style={styles.buttonText}>建立</Text>
               </Animated.View>
             </Pressable>
@@ -137,8 +139,8 @@ export default function CreateList({ onBack }) {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listPadding}
             renderItem={({ item }) => (
-              <Pressable 
-                style={[styles.actionItem, selectedActions.find(a => a.id === item.id) && styles.selectedItem]}
+              <Pressable
+                style={[styles.actionItem, selectedActions.find(a => a.id === item.id) && { backgroundColor: colors.lightBg }]}
                 onPress={() => toggleSelection(item)}
               >
                 <Text style={styles.actionName}>{item.name}</Text>
@@ -146,7 +148,7 @@ export default function CreateList({ onBack }) {
               </Pressable>
             )}
           />
-          <Pressable style={styles.confirmButton} onPress={() => setModalVisible(false)}>
+          <Pressable style={[styles.confirmButton, { backgroundColor: colors.floatBtn }]} onPress={() => setModalVisible(false)}>
             <Text style={styles.confirmButtonText}>確認選取</Text>
           </Pressable>
         </View>

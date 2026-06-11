@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Dimensions, Image, Alert, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar'; 
+import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入自訂 SVG 圖示
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -54,6 +55,7 @@ const AnimatedPressable = ({ children, style, onPress, scaleTo = 0.96 }) => {
 
 export default function LalaDetail({ title, onBack }) {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const toggleFavoriteStore = useListStore((state) => state.toggleFavorite);
   const favorites = useListStore((state) => state.favorites) || [];
@@ -190,11 +192,11 @@ export default function LalaDetail({ title, onBack }) {
   const userCustomLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* Header */}
-      <View style={styles.headerWrapper}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           {/* 【方案 A】返回鍵 Q彈化 */}
           <Pressable 
@@ -289,7 +291,7 @@ export default function LalaDetail({ title, onBack }) {
               onPress={handleStartWorkout}
               style={{ width: '100%', alignItems: 'center' }}
             >
-              <Animated.View style={[styles.startBtn, { transform: [{ scale: startBtnAnimScale }] }]}>
+              <Animated.View style={[styles.startBtn, { backgroundColor: colors.floatBtn, shadowColor: colors.floatBtn, transform: [{ scale: startBtnAnimScale }] }]}>
                 <Text style={styles.startBtnText}>開始</Text>
               </Animated.View>
             </Pressable>

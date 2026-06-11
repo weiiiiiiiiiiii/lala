@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { useTheme } from '../context/ThemeContext';
 
 // 引入萬能控色版返回鍵
 import TurnBackIcon from '../assets/images/TurnBack.svg';
@@ -19,6 +20,7 @@ const UNDER_TEXT_COLOR = '#93AEFF'; // 忘記密碼與註冊引導的同步亮�
 
 export default function LoginOrSignup({ onBack }) {
     const router = useRouter();
+    const { colors } = useTheme();
 
     const [mail, setMail] = useState('');
     const [password, setPassword] = useState('');
@@ -67,7 +69,7 @@ export default function LoginOrSignup({ onBack }) {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.contentBg }]} edges={['top', 'left', 'right']}>
             {/* 返回按鈕套用方案 A 微互動 */}
             <Pressable
                 onPressIn={() => animateScale(backArrowScale, 0.85)}
@@ -84,12 +86,12 @@ export default function LoginOrSignup({ onBack }) {
                 <View style={{ flex: 1, justifyContent: 'center', marginBottom: 150 }}>
                     
                     {/* 中間大卡片框框 */}
-                    <View style={styles.loginCon}>
+                    <View style={[styles.loginCon, { backgroundColor: colors.headerBg }]}>
 
                         {/* 電子郵件輸入區塊 */}
                         <View style={styles.itemCon}>
                             <Text style={styles.nameText}>電子郵件</Text>
-                            <View style={styles.inputCon}>
+                            <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                 <TextInput
                                     style={styles.innerText}
                                     placeholder="請輸入電子郵件"
@@ -105,7 +107,7 @@ export default function LoginOrSignup({ onBack }) {
                         {/* 密碼輸入區塊 */}
                         <View style={styles.itemCon}>
                             <Text style={styles.nameText}>密碼</Text>
-                            <View style={styles.inputCon}>
+                            <View style={[styles.inputCon, { backgroundColor: colors.logoutBg }]}>
                                 <TextInput
                                     style={styles.innerText}
                                     placeholder="請輸入密碼"

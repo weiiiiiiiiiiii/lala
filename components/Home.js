@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
+import { useTheme } from '../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -120,7 +121,8 @@ const AnimatedPressable = ({ children, style, onPress, scaleTo = 0.95 }) => {
 };
 
 export default function Home() {
-  const router = useRouter(); 
+  const router = useRouter();
+  const { colors, themeMode } = useTheme(); // 💡 解構引入 themeMode 用於處理精細的字體對比度
   const [activeCategory, setActiveCategory] = useState("常用");
 
   // 【方案 A 優化】動作卡片導入彈性互動，scaleTo 設為微量 0.97
@@ -150,18 +152,18 @@ export default function Home() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* Header */}
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
+      <View style={[styles.headerContainer, { backgroundColor: colors.headerBg }]}>
+        <View style={[styles.header, { backgroundColor: colors.darkNavy }]}>
           <Text style={styles.appTitle}>Emo 伸</Text>
         </View>
       </View>
 
       {/* 主交互區 */}
-      <View style={styles.interactiveBodyContainer}>
+      <View style={[styles.interactiveBodyContainer, { backgroundColor: colors.headerBg }]}>
         
         {/* 左側：按鈕區 */}
         <View style={styles.interactiveLeftNodes}>
@@ -169,6 +171,9 @@ export default function Home() {
             const isActive = activeCategory === item;
             const isRightSide = index % 2 !== 0; 
             const displayName = item === "背部與腰部" ? "背腰" : item;
+
+            // 💡 智慧連動按鈕沒被選中時的字體顏色：暗色模式為白字，亮色模式為深色底下的特製深褐灰
+            const inactiveTextColor = themeMode === 'dark' ? '#fff' : '#4A4238';
 
             return (
               <View 
@@ -182,14 +187,16 @@ export default function Home() {
                 <AnimatedPressable
                   style={[
                     styles.nodeCircle,
-                    isActive && styles.nodeCircleActive
+                    // 💡 智慧防死角：未選中讀取 colors.lightBg，選中讀取 colors.activeBtn 並補上 logoutBg 邊框
+                    { backgroundColor: isActive ? colors.activeBtn : colors.lightBg },
+                    isActive && { borderWidth: 1.5, borderColor: colors.logoutBg }
                   ]}
-                  scaleTo={0.9} // 圓形按鈕縮放幅度略大，手感更扎實
+                  scaleTo={0.9}
                   onPress={() => setActiveCategory(item)}
                 >
                   <Text style={[
                     styles.nodeText,
-                    isActive && styles.nodeTextActive
+                    { color: isActive ? colors.darkNavy : inactiveTextColor } // 💡 動態字體色彩對比度連動
                   ]}>
                     {displayName}
                   </Text>
@@ -210,8 +217,8 @@ export default function Home() {
       </View>
 
       {/* 下方卡片顯示區 */}
-      <View style={styles.bottomCardContainerOuter}>
-        <View style={styles.bottomCardWrapper}>
+      <View style={[styles.bottomCardContainerOuter, { backgroundColor: colors.headerBg }]}>
+        <View style={[styles.bottomCardWrapper, { backgroundColor: colors.logoutBg }]}>
           <Text style={styles.sectionTitle}>{activeCategory}</Text>
           <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
             <View style={styles.cardGrid}>
@@ -289,8 +296,7 @@ const styles = StyleSheet.create({
   nodeCircle: {
     width: 50,
     height: 50,
-    borderRadius: 25, // 修正：寬高 50 對應圓角 25 才是完美正圓形
-    backgroundColor: '#4A5764',
+    borderRadius: 25, 
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -299,18 +305,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
   },
-  nodeCircleActive: {
-    backgroundColor: '#8EA8BE', 
-    borderWidth: 1.5,
-    borderColor: '#424E58',
-  },
   nodeText: {
     fontSize: 12,
-    color: '#fff',
     fontWeight: 'bold',
-  },
-  nodeTextActive: {
-    color: '#2D3A48',
   },
   bottomCardContainerOuter: {
     flex: 1,
@@ -318,7 +315,6 @@ const styles = StyleSheet.create({
   },
   bottomCardWrapper: {
     flex: 1, 
-    backgroundColor: CARD_CONTAINER_BG,
     borderTopLeftRadius: 30, 
     borderTopRightRadius: 30,
     paddingHorizontal: 16,

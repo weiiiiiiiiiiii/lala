@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 import HomeIcon from '../../assets/images/home_icon.svg';
 import ListIcon from '../../assets/images/list_icon.svg';
@@ -11,12 +12,13 @@ const { width } = Dimensions.get('window');
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   const Colors = {
-    bg: '#2D3A48',       
-    active: '#CBDAFF',   
-    inactive: '#848FA9', 
-    indicator: 'rgba(203, 218, 255, 0.12)', 
+    bg: colors.navBg,
+    active: colors.navActive,
+    inactive: colors.navInactive,
+    indicator: colors.navIndicator,
   };
 
   // 藥丸規格設定

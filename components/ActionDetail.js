@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions, Alert, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar'; 
+import { StatusBar } from 'expo-status-bar';
 import { ALL_STRETCHES } from './stretchData';
-import useListStore from '../store/useListStore'; 
+import useListStore from '../store/useListStore';
+import { useTheme } from '../context/ThemeContext';
 
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import PlusIcon from '../assets/images/Plus.svg';
@@ -18,6 +19,7 @@ const PAGE_BG = '#838D95';         // 下方區塊主要背景色
 const BUBBLE_BG = '#626C72';       // 說明欄內部背景色
 
 export default function ActionDetail({ actionId, parentTitle, onBack }) {
+  const { colors } = useTheme();
   const favorites = useListStore((state) => state.favorites) || [];
   const myLists = useListStore((state) => state.myLists) || [];
   const addActionToSpecificList = useListStore((state) => state.addActionToSpecificList);
@@ -109,8 +111,8 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
   const validLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
 
   if (!actionData) return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerWrapper}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
             <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" />
@@ -126,11 +128,11 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.darkNavy }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* 1. 固定 Header */}
-      <View style={styles.headerWrapper}>
+      <View style={[styles.headerWrapper, { backgroundColor: colors.darkNavy }]}>
         <View style={styles.header}>
           {/* 【方案 A】返回鍵 Q彈化 */}
           <Pressable 
@@ -173,7 +175,7 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
         </View>
 
         {/* 3. 獨立捲動內容區塊：背景完全與設計圖同步翻新 */}
-        <View style={styles.contentWrapper}>
+        <View style={[styles.contentWrapper, { backgroundColor: colors.headerBg }]}>
           <ScrollView 
             style={styles.contentScroll} 
             showsVerticalScrollIndicator={false}
@@ -182,10 +184,10 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
             {/* 動作步驟 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <View style={styles.indicator} />
+                <View style={[styles.indicator, { backgroundColor: colors.darkNavy }]} />
                 <Text style={styles.sectionTitle}>動作步驟</Text>
               </View>
-              <View style={styles.textBubble}>
+              <View style={[styles.textBubble, { backgroundColor: colors.contentBg }]}>
                 <Text style={styles.contentText}>{actionData.steps || "暫無詳細說明"}</Text>
               </View>
             </View>
@@ -193,10 +195,10 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
             {/* 注意事項 */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <View style={styles.indicator} />
+                <View style={[styles.indicator, { backgroundColor: colors.darkNavy }]} />
                 <Text style={styles.sectionTitle}>注意事項</Text>
               </View>
-              <View style={styles.textBubble}>
+              <View style={[styles.textBubble, { backgroundColor: colors.contentBg }]}>
                 <Text style={styles.contentText}>{actionData.notice || "請保持呼吸，若感疼痛請停止。"}</Text>
               </View>
             </View>
