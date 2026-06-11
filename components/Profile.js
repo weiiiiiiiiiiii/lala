@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, Pressable, Animated, Dimensions, Modal, ScrollView, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, Image, Pressable, Animated, Dimensions, Modal, ScrollView, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // 💡 引入 useSafeAreaInsets
 import { auth, db } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -16,7 +16,98 @@ import TurnBackIcon from '../assets/images/TurnBack.svg';
 const SUN_PNG = require('../assets/images/Sun.png');
 const MOON_PNG = require('../assets/images/Moon.png');
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
+
+// ==========================================
+// 滾輪選擇器常數與組件
+// ==========================================
+const ITEM_HEIGHT = 52;
+const MINUTE_DATA = Array.from({ length: 60 }, (_, i) => i);
+const SECOND_DATA_5 = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+const SECOND_DATA_1 = Array.from({ length: 60 }, (_, i) => i);
+
+const PickerColumn = ({ data, value, onValueChange, label }) => {
+  const scrollRef = useRef(null);
+  const justSettledRef = useRef(false);
+
+  const getIdx = (val) => {
+    const idx = data.indexOf(val);
+    return idx >= 0 ? idx : 0;
+  };
+
+  const scrollToIdx = (idx, animated) => {
+    scrollRef.current?.scrollTo({ y: idx * ITEM_HEIGHT, animated });
+  };
+
+  useEffect(() => {
+    if (justSettledRef.current) {
+      justSettledRef.current = false;
+      return;
+    }
+    const timer = setTimeout(() => scrollToIdx(getIdx(value), false), 30);
+    return () => clearTimeout(timer);
+  }, [value, data.length]);
+
+  const handleScrollEnd = (e) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const idx = Math.max(0, Math.min(data.length - 1, Math.round(y / ITEM_HEIGHT)));
+    justSettledRef.current = true;
+    onValueChange(data[idx]);
+    scrollToIdx(idx, true);
+  };
+
+  return (
+    <View style={pickerColStyles.container}>
+      <View style={{ position: 'relative', height: ITEM_HEIGHT * 5 }}>
+        <View pointerEvents="none" style={pickerColStyles.centerHighlight} />
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={ITEM_HEIGHT}
+          decelerationRate="fast"
+          contentOffset={{ x: 0, y: getIdx(value) * ITEM_HEIGHT }}
+          onMomentumScrollEnd={handleScrollEnd}
+          contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+          nestedScrollEnabled={true}
+        >
+          {data.map((val) => (
+            <Pressable key={val} onPress={() => {
+              justSettledRef.current = true;
+              onValueChange(val);
+              scrollToIdx(getIdx(val), true);
+            }}>
+              <View style={{ height: ITEM_HEIGHT, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <Text style={[
+                  pickerColStyles.itemText,
+                  val === value && pickerColStyles.itemTextSelected,
+                ]}>
+                  {String(val).padStart(2, '0')}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+      <Text style={pickerColStyles.label}>{label}</Text>
+    </View>
+  );
+};
+
+const pickerColStyles = StyleSheet.create({
+  container: { flex: 1, alignItems: 'center' },
+  centerHighlight: {
+    position: 'absolute',
+    top: ITEM_HEIGHT * 2 ,
+    left: -5,
+    height: ITEM_HEIGHT ,
+    width: 40,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 14,
+  },
+  itemText: { fontSize: 22, fontWeight: '600', color: 'rgba(255,255,255,0.3)' },
+  itemTextSelected: { fontSize: 22, fontWeight: '700', color: '#fff' },
+  label: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600', marginTop: 8 },
+});
 
 // 統一主視覺配色變數
 const HEADER_BG = '#838D95';        // 上半部大背景色
@@ -37,10 +128,6 @@ export default function Profile() {
   const [userPic, setUserpic] = useState(null);
   const [user, setUser] = useState(null);
   const [init, setInit] = useState(true);
-
-  // 音量狀態值（範圍 0 ~ 1，預設 0.8 代表 80%）
-  const [volume, setVolume] = useState(0.8);
-  const trackWidth = 160;
 
   // 控制時間選擇器 Modal 顯示
   const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -96,34 +183,6 @@ export default function Profile() {
   // 偵測是否login
   const userLogin = !!user;
 
-  // ==========================================
-  // 💡 【核心重構：手動音量滑動監聽大腦】
-  // 只有在 userLogin === true 時才激活滑動權限，未登入直接阻斷
-  // ==========================================
-  const volumePanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => userLogin,
-      onMoveShouldSetPanResponder: () => userLogin,
-      onPanResponderGrant: (e, gestureState) => {
-        // 點擊軌道任何地方時，即時瞬移更新音量數值，手感極佳
-        const clickX = gestureState.x0 - (width * 0.9 - trackWidth - 60); 
-        let newVol = Math.max(0, Math.min(1, clickX / trackWidth));
-        setVolume(newVol);
-      },
-      onPanResponderMove: (e, gestureState) => {
-        // 計算手指拖曳時的橫向座標百分比
-        const currentX = gestureState.x0 + gestureState.dx - (width * 0.9 - trackWidth - 60);
-        let newVol = Math.max(0, Math.min(1, currentX / trackWidth));
-        setVolume(newVol);
-      },
-      onPanResponderRelease: (e, gestureState) => {
-        // 💡 幫你預留好未來串接真實控制音量的入口防線！
-        // 未來安裝 expo-av 後，直接在此處呼叫變音：Audio.setAudioModeAsync({ ... }) 或者是控制音效播放
-        console.log("當前最新變音釋放數據（0~1）:", volume);
-      }
-    })
-  ).current;
-
   // 登出邏輯
   const handleLogout = async () => {
     try {
@@ -148,11 +207,21 @@ export default function Profile() {
     else if (label === '姿勢準備倒計時') timeStr = settings?.countdownTime || '00:08';
     const { m, s } = parseTimeStr(timeStr);
     setPickerMinutes(m);
-    setPickerSeconds(s);
+    if (label === '姿勢準備倒計時') {
+      setPickerSeconds(s);
+    } else {
+      setPickerSeconds(Math.round(s / 5) * 5 % 60);
+    }
     setIsPickerVisible(true);
   };
 
   const handlePickerDone = () => {
+    const totalSec = pickerMinutes * 60 + pickerSeconds;
+    const minSec = currentSettingLabel === '預設運動時間' ? 10 : 5;
+    if (totalSec < minSec) {
+      Alert.alert('時間太短', `「${currentSettingLabel}」最少需要 ${minSec} 秒`);
+      return;
+    }
     const timeStr = `${String(pickerMinutes).padStart(2, '0')}:${String(pickerSeconds).padStart(2, '0')}`;
     if (currentSettingLabel === '預設運動時間') updateSettings('defaultWorkoutTime', timeStr);
     else if (currentSettingLabel === '每次休息時間') updateSettings('restTime', timeStr);
@@ -287,29 +356,6 @@ export default function Profile() {
                 <Text style={userLogin ? styles.menuItemText : styles.menuItemTextDisabled}>姿勢準備倒計時</Text>
                 <Text style={userLogin ? styles.timeValueText : styles.timeValueTextDisabled}>{settings?.countdownTime || '00:08'}</Text>
               </Pressable>
-              <View style={styles.innerRowDivider} />
-
-              {/* 💡 提示音量智慧滑軌項目 (綁定原生手勢監聽) */}
-              <View style={styles.menuItemRow}>
-                <Text style={userLogin ? styles.menuItemText : styles.menuItemTextDisabled}>提示音量</Text>
-                <View style={styles.volumeSliderControlWrapper}>
-                  
-                  {/* 精置手作滑動軌道列 */}
-                  <View 
-                    {...volumePanResponder.panHandlers}
-                    style={[styles.customTrackLine, !userLogin && { opacity: 0.25 }]}
-                  >
-                    {/* 白色滿版進度填充區，寬度百分比動態連動 */}
-                    <View style={[styles.customFillProgress, { width: `${volume * 100}%` }]} />
-                    {/* 圓形小滑塊，橫向座標依百分比動態移動 */}
-                    <View style={[styles.customSliderThumb, { left: `${volume * 100}%`, marginLeft: volume > 0.9 ? -10 : -5 }]} />
-                  </View>
-
-                  <Text style={userLogin ? styles.volumePercentageLabel : styles.volumePercentageLabelDisabled}>
-                    {Math.round(volume * 100)}%
-                  </Text>
-                </View>
-              </View>
             </View>
 
             {/* 分類二：其他 */}
@@ -339,7 +385,7 @@ export default function Profile() {
           onPressIn={() => animateScale(logoutBtnScale, 0.98)}
           onPressOut={() => animateScale(logoutBtnScale, 1, true)}
           onPress={handleLogout}
-          style={[styles.logoutBtnOuterWrapper, { bottom: 60 + insets.bottom }]}
+          style={[styles.logoutBtnOuterWrapper, { bottom: 110 + insets.bottom }]}
         >
           <Animated.View style={[styles.logoutBarBtn, { backgroundColor: colors.logoutBg, transform: [{ scale: logoutBtnScale }] }]}>
             <Text style={styles.logoutTextText}>登出</Text>
@@ -376,58 +422,23 @@ export default function Profile() {
               </Pressable>
             </View>
 
-            {/* 滾動選秒區：ambient 數字可點擊直接選秒，中心膠囊點擊微調 */}
+            {/* 滾動選時區：左右兩欄滑動滾輪 */}
             <View style={styles.scrollWheelsWrapper}>
-              {/* 上方 4 個 ambient 秒數（動態計算，環繞當前選中值） */}
-              {(() => {
-                const opts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-                const idx = opts.indexOf(pickerSeconds < 0 ? 0 : pickerSeconds - (pickerSeconds % 5));
-                return [-4, -3, -2, -1].map(offset => {
-                  const val = opts[(idx + offset + 12) % 12];
-                  return (
-                    <Pressable key={`above_${val}`} onPress={() => setPickerSeconds(val)}>
-                      <Text style={styles.ambientWheelNumber}>{String(val).padStart(2, '0')}</Text>
-                    </Pressable>
-                  );
-                });
-              })()}
-
-              {/* 核心選中高亮排版列 */}
-              <View style={styles.activeSelectionCenterRow}>
-                {/* 分鐘膠囊：點擊 +1 分，長按 -1 分 */}
-                <Pressable
-                  style={styles.numberCapsuleContainer}
-                  onPress={() => setPickerMinutes(m => (m + 1) % 60)}
-                  onLongPress={() => setPickerMinutes(m => (m - 1 + 60) % 60)}
-                >
-                  <Text style={styles.centerActiveNumberText}>{String(pickerMinutes).padStart(2, '0')}</Text>
-                </Pressable>
-                <Text style={styles.unitLabelText}>分鐘</Text>
-
-                {/* 秒數膠囊：點擊 +5 秒，長按 -5 秒 */}
-                <Pressable
-                  style={styles.numberCapsuleContainer}
-                  onPress={() => setPickerSeconds(s => (s + 5) % 60)}
-                  onLongPress={() => setPickerSeconds(s => (s - 5 + 60) % 60)}
-                >
-                  <Text style={styles.centerActiveNumberText}>{String(pickerSeconds).padStart(2, '0')}</Text>
-                </Pressable>
-                <Text style={styles.unitLabelText}>秒</Text>
+              <PickerColumn
+                data={MINUTE_DATA}
+                value={pickerMinutes}
+                onValueChange={setPickerMinutes}
+                label="分鐘"
+              />
+              <View style={styles.colonSeparatorView}>
+                <Text style={styles.colonSeparatorText}>:</Text>
               </View>
-
-              {/* 下方 4 個 ambient 秒數 */}
-              {(() => {
-                const opts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-                const idx = opts.indexOf(pickerSeconds < 0 ? 0 : pickerSeconds - (pickerSeconds % 5));
-                return [1, 2, 3, 4].map(offset => {
-                  const val = opts[(idx + offset) % 12];
-                  return (
-                    <Pressable key={`below_${val}`} onPress={() => setPickerSeconds(val)}>
-                      <Text style={styles.ambientWheelNumber}>{String(val).padStart(2, '0')}</Text>
-                    </Pressable>
-                  );
-                });
-              })()}
+              <PickerColumn
+                data={currentSettingLabel === '姿勢準備倒計時' ? SECOND_DATA_1 : SECOND_DATA_5}
+                value={pickerSeconds}
+                onValueChange={setPickerSeconds}
+                label="秒"
+              />
             </View>
 
           </View>
@@ -502,15 +513,6 @@ const styles = StyleSheet.create({
   timeValueText: { color: TEXT_YELLOW, fontSize: 17, fontWeight: '600' },
   timeValueTextDisabled: { color: TEXT_YELLOW, fontSize: 17, fontWeight: '600', opacity: 0.5 },
 
-  // 客製化提示音量滑軌外觀尺寸
-  volumeSliderControlWrapper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  customTrackLine: { width: 160, height: 8, backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius: 4, position: 'relative', justifyContent: 'center' },
-  customFillProgress: { height: 8, backgroundColor: '#fff', borderRadius: 4, position: 'absolute', left: 0 },
-  customSliderThumb: { width: 16, height: 16, borderRadius: 8, backgroundColor: '#fff', position: 'absolute', top: -4 },
-  
-  volumePercentageLabel: { color: TEXT_YELLOW, fontSize: 15, fontWeight: '600', minWidth: 36, textAlign: 'right' },
-  volumePercentageLabelDisabled: { color: TEXT_YELLOW, fontSize: 15, fontWeight: '600', minWidth: 36, textAlign: 'right', opacity: 0.5 },
-
   // 登出按鈕底座滿版橫條 (背景 424E58)
   logoutBtnOuterWrapper: { width: '100%', height: 60, position: 'absolute' }, // 💡 移除了寫死的 bottom: 0，改由行內 style 動態傳入計算
   logoutBarBtn: { width: '100%', height: 60, backgroundColor: LOGOUT_BG, justifyContent: 'center', alignItems: 'center' },
@@ -522,11 +524,7 @@ const styles = StyleSheet.create({
   pickerHeaderActionBar: { height: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.05)' },
   pickerActionBtnText: { fontSize: 17, color: '#fff' },
   
-  scrollWheelsWrapper: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 10 },
-  ambientWheelNumber: { fontSize: 18, color: 'rgba(255, 255, 255, 0.25)', marginVertical: 4, fontWeight: '500' },
-  
-  activeSelectionCenterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 10, gap: 12 },
-  numberCapsuleContainer: { width: 85, height: 38, backgroundColor: 'rgba(255, 255, 255, 0.35)', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  centerActiveNumberText: { fontSize: 22, fontWeight: '700', color: '#000' },
-  unitLabelText: { fontSize: 18, color: '#fff', fontWeight: '600' }
+  scrollWheelsWrapper: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10 },
+  colonSeparatorView: { paddingBottom: 32, paddingHorizontal: 4 },
+  colonSeparatorText: { fontSize: 30, fontWeight: '700', color: '#fff' }
 });

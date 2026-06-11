@@ -211,6 +211,25 @@ export default function EmptyList() {
     }
   };
 
+  const handleStartWorkout = async () => {
+    if (actionsList.length === 0) return;
+    try {
+      const ScreenOrientation = require('expo-screen-orientation');
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } catch (e) {
+      console.log('⚠️ 轉橫屏失敗', e);
+    }
+    setTimeout(() => {
+      router.push({
+        pathname: '/workoutPlayer',
+        params: {
+          listTitle: name || currentList?.title || '清單',
+          actionsData: JSON.stringify(actionsList),
+        },
+      });
+    }, 150);
+  };
+
   const handleOpenAddModal = () => {
     if (isEditing) return;
     const existingNames = actionsList.map(a => a.name.trim());
@@ -392,7 +411,7 @@ export default function EmptyList() {
           <Pressable 
             onPressIn={() => animateScale(startBtnScale, 0.95)}
             onPressOut={() => animateScale(startBtnScale, 1, true)}
-            onPress={handleSaveTime} // 這裡保持原先點擊邏輯入口
+            onPress={handleStartWorkout}
             style={{ width: '100%', alignItems: 'center' }}
           >
             <Animated.View style={[styles.startBtn, { backgroundColor: colors.floatBtn, shadowColor: colors.floatBtn, transform: [{ scale: startBtnScale }] }]}>
