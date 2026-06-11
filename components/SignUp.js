@@ -122,7 +122,7 @@ export default function SignUp({ onBack }) {
                                     style={styles.img}
                                 />
                                 <View style={styles.smallEditBtn}>
-                                    <Edit width={16} height={16} />
+                                    <Edit width={16} height={16} stroke="#000"/>
                                 </View>
                             </Pressable>
                             <View style={styles.hr}></View>
