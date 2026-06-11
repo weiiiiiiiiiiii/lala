@@ -1,30 +1,3 @@
-// const { getDefaultConfig } = require("expo/metro-config");
-
-// module.exports = (() => {
-//   const config = getDefaultConfig(__dirname);
-
-//   const { transformer, resolver } = config;
-
-//   config.transformer = {
-//     ...transformer,
-//     babelTransformerPath: require.resolve("react-native-svg-transformer"),
-//     getTransformOptions: async () => ({
-//       transform: {
-//         experimentalImportSupport: false,
-//         inlineRequires: true,
-//       },
-//     }),
-//   };
-  
-//   config.resolver = {
-//     ...resolver,
-//     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
-//     sourceExts: [...resolver.sourceExts, "svg"],
-//   };
-
-//   return config;
-// })();
-
 const { getDefaultConfig } = require("expo/metro-config");
 
 module.exports = (() => {
@@ -32,7 +5,6 @@ module.exports = (() => {
 
   const { transformer, resolver } = config;
 
-  // 1. ✨ 強制限制核心數為 1，這是 Windows 防止 Metro 記憶體溢出的特效藥
   config.maxWorkers = 1;
 
   // 2. 修正 SVG 轉換器設定
@@ -48,6 +20,9 @@ module.exports = (() => {
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     sourceExts: [...resolver.sourceExts, "svg"],
   };
+
+  // 範例：在你的 metro.config.js 裡找到 assetExts 並加上 'GIF'
+  config.resolver.assetExts.push('GIF');
 
   return config;
 })();

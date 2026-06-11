@@ -39,29 +39,63 @@ const recommend = [
     id: 'rec_full_body',
     name: '全身伸展',
     actions: [
-      { id: 'm2', name: '眼鏡蛇式', detail: '骨盆保持貼地。', time: '00:30', img: null },
-      { id: 'm3', name: '鳥犬式', detail: '專注於身體的平衡。', time: '00:30', img: null }
+      { id: 'm1', name: '貓牛式', time: '00:30', img: null },
+      { id: 'm2', name: '眼鏡蛇式', time: '00:30', img: null },
+      { id: 'm3', name: '鳥犬式', time: '00:30', img: null },
+      { id: 'm4', name: '動態手臂繞圈', time: '00:30', img: null },
+      { id: 'm5', name: '站姿體側伸展', time: '00:30', img: null },
+      { id: 'lb1', name: '抱膝至胸', time: '00:30', img: null },
+      { id: 's1', name: '十字交叉拉伸', time: '00:30', img: null },
+      { id: 'h1', name: '坐姿體前彎', time: '00:30', img: null },
+      { id: 'c2', name: '下犬式', time: '00:30', img: null },
+      { id: 'p2', name: '仰臥脊椎扭轉', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_upper_limb',
     name: '上肢伸展',
     actions: [
-      { id: 'b2', name: '背手下壓', detail: '過程中保持挺胸。', time: '00:30', img: null }
+      { id: 'b2', name: '背手下壓', time: '00:30', img: null },
+      { id: 'b1', name: '靠牆轉身拉伸', time: '00:30', img: null },
+      { id: 'b3', name: '手臂向後外旋', time: '00:30', img: null },
+      { id: 't1', name: '過頭肘部拉伸', time: '00:30', img: null },
+      { id: 't3', name: '傾斜伸展', time: '00:30', img: null },
+      { id: 'f1', name: '屈指肌腱拉伸', time: '00:30', img: null },
+      { id: 'f3', name: '祈禱式伸展', time: '00:30', img: null },
+      { id: 's2', name: '後背扣手', time: '00:30', img: null },
+      { id: 's3', name: '肩外旋', time: '00:30', img: null },
+      { id: 'n1', name: '坐姿側向拉頸', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_back',
     name: '背部伸展',
     actions: [
-      { id: 'l1', name: '貓式伸展', detail: '動作隨著呼吸頻率。', time: '00:30', img: null }
+      { id: 'l1', name: '貓式伸展', time: '00:30', img: null },
+      { id: 'l2', name: '站姿體側伸展', time: '00:30', img: null },
+      { id: 'l3', name: '靠牆傾斜', time: '00:30', img: null },
+      { id: 'lb1', name: '抱膝至胸', time: '00:30', img: null },
+      { id: 'lb2', name: '坐姿轉體', time: '00:30', img: null },
+      { id: 'lb3', name: '橋式運動', time: '00:30', img: null },
+      { id: 'm1', name: '貓牛式', time: '00:30', img: null },
+      { id: 'p2', name: '仰臥脊椎扭轉', time: '00:30', img: null },
+      { id: 'g2', name: '疊膝臀部伸展', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_lower_limb',
     name: '下肢伸展',
     actions: [
-      { id: 'f2', name: '反手撐地', detail: '手肘微彎避免鎖死。', time: '00:30', img: null }
+      { id: 'q1', name: '站姿單腳勾腿', time: '00:30', img: null },
+      { id: 'q2', name: '側臥拉腿', time: '00:30', img: null },
+      { id: 'h1', name: '坐姿體前彎', time: '00:30', img: null },
+      { id: 'h2', name: '單腳站姿壓腿', time: '00:30', img: null },
+      { id: 'a1', name: '蝴蝶式', time: '00:30', img: null },
+      { id: 'a2', name: '側向壓腿', time: '00:30', img: null },
+      { id: 'c1', name: '靠牆推小腿', time: '00:30', img: null },
+      { id: 'c2', name: '下犬式', time: '00:30', img: null },
+      { id: 'g1', name: '鴿式', time: '00:30', img: null },
+      { id: 'w1', name: '仰臥4字伸展', time: '00:30', img: null },
     ]
   },
 ];
