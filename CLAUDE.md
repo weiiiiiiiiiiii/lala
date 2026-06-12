@@ -10,5 +10,5 @@
 - package.json - 依賴的套件
 
 ## 要完成的功能
-- 編輯個人資料頁面和個人資料頁面同步問題，現在的components/EditProfile.js在更新完名稱後回到components/Profile.js，components/Profile.js的使用者名稱顯示仍然會是舊的，我想修改這個問題。
+- 編輯個人資料頁面(components/EditProfile.js)沒有做亮暗模式的渲染，請參考context/ThemeContext.js幫我實作
 

@@ -9,14 +9,15 @@ import { auth, db } from '../config/firebase';
 import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { pickimg } from '../utlis/PhotoHandler';
+import { useTheme } from '../context/ThemeContext';
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import OKicon from '../assets/images/OK_icon.svg';
 import EditIcon from '../assets/images/pencil_icon.svg';
 
-const BG_COLOR = '#838D95';
 const genderOption = ['男', '女', '其他', '不願透露'];
 
 export default function EditProfile({ onBack }) {
+  const { colors } = useTheme();
   const [userData, setUserData] = useState({ name: '', gender: '', phone: '', email: '', avatar: null });
   const [loading, setLoading] = useState(true);
   const originalDataRef = useRef(null);
@@ -173,7 +174,7 @@ export default function EditProfile({ onBack }) {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.headerBg }]} edges={['top']}>
       <StatusBar style="light" />
 
       {/* Header：左返回 右儲存 */}
@@ -309,7 +310,7 @@ export default function EditProfile({ onBack }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_COLOR },
+  container: { flex: 1 },
 
   header: {
     flexDirection: 'row',
