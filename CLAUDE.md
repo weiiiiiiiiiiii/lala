@@ -10,10 +10,5 @@
 - package.json - 依賴的套件
 
 ## 要完成的功能
-- 需登入才能建立清單的問題，在components/LalaDetail.js和components/ActionDetail.js裡，還沒登入時可以透過右上角的加入清單按鈕來創建新清單，我想修正這點，若尚未登入時按下加入清單按鈕應該會跳出通知並提醒登入，請參考尚未登入時按下愛心鍵的通知
-- 播放器的暫停時Icon顯示問題，在components/WorkoutPlayer.js裡，當觸發暫停時，該介面的返回鍵（繼續運動的左邊）有時會顯示黑色，我想要他一直維持白色的狀態
-
-
-
-
+- 編輯個人資料頁面和個人資料頁面同步問題，現在的components/EditProfile.js在更新完名稱後回到components/Profile.js，components/Profile.js的使用者名稱顯示仍然會是舊的，我想修改這個問題。
 

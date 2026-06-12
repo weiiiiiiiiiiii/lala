@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, Pressable, Animated, Dimensions, Modal, ScrollView, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'; // 💡 引入 useSafeAreaInsets
 import { auth, db } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../context/ThemeContext';
 import useListStore from '../store/useListStore';
@@ -127,6 +128,7 @@ export default function Profile() {
   // 使用者頭像與狀態資料夾 (邏輯完美保留)
   const [userPic, setUserpic] = useState(null);
   const [user, setUser] = useState(null);
+  const [displayName, setDisplayName] = useState('');
   const [init, setInit] = useState(true);
 
   // 控制時間選擇器 Modal 顯示
@@ -161,6 +163,7 @@ export default function Profile() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      setDisplayName(currentUser?.displayName || '');
 
       if (currentUser) {
         try {
@@ -191,6 +194,24 @@ export default function Profile() {
     });
     return unsubscribe;
   }, []);
+
+  // 從 EditProfile 返回時重新讀取最新頭像
+  useFocusEffect(
+    useCallback(() => {
+      const user = auth.currentUser;
+      if (!user) return;
+      setUser(user);
+      setDisplayName(auth.currentUser?.displayName || '');
+      (async () => {
+        try {
+          const docSnap = await getDoc(doc(db, 'users', user.uid));
+          if (docSnap.exists()) {
+            setUserpic(docSnap.data().avatar || null);
+          }
+        } catch (e) { console.error('重新載入頭像失敗:', e); }
+      })();
+    }, [])
+  );
 
   // 偵測是否login
   const userLogin = !!user;
@@ -256,6 +277,7 @@ export default function Profile() {
           onPressOut={() => animateScale(loginRowScale, 1, true)}
           onPress={() => {
             if (!userLogin) router.push('/loginsignup');
+            else router.push('/editprofile');
           }}
           style={{ width: '100%' }}
         >
@@ -268,7 +290,7 @@ export default function Profile() {
               )}
 
               <Text style={styles.userNameText}>
-                {userLogin ? (user.displayName || '未命名用戶') : '登入/註冊'}
+                {userLogin ? (displayName || '未命名用戶') : '登入/註冊'}
               </Text>
             </View>
             <TurnBackIcon
