@@ -21,33 +21,30 @@ export default function TabLayout() {
     indicator: colors.navIndicator,
   };
 
-  // 藥丸規格設定
   const BUTTON_WIDTH = 75;
   const TAB_BAR_HEIGHT = 60 + insets.bottom;
   const PADDING_TOP = 15;
 
-  // 用於計算每個分頁中心的 X 軸位置 (總共 3 個分頁)
   const totalTabs = 3;
   const tabWidth = width / totalTabs;
-  // 讓藥丸完美居中在每個分頁格子裡
+
   const getIndicatorX = (index) => {
     return tabWidth * index + (tabWidth - BUTTON_WIDTH) / 2;
   };
 
-  // 動態動畫數值
+ 
   const translateX = useRef(new Animated.Value(getIndicatorX(0))).current;
 
-  // 自訂客製化 TabBar 元件，完整保留 expo-router 傳進來的狀態與導覽邏輯
   const CustomTabBar = ({ state, descriptors, navigation }) => {
     
-    // 監聽分頁切換，觸發平滑滑動動畫
+
     useEffect(() => {
       Animated.spring(translateX, {
         toValue: getIndicatorX(state.index),
         velocity: 10,
         tension: 60,
-        friction: 9, // 微量彈性，讓滑動更有現代 UI 的 Q 彈律動感
-        useNativeDriver: true, // 啟用原生驅動器，確保 60fps 絕不卡頓
+        friction: 9, 
+        useNativeDriver: true, 
       }).start();
     }, [state.index]);
 
@@ -62,7 +59,6 @@ export default function TabLayout() {
               width: BUTTON_WIDTH,
               backgroundColor: Colors.indicator,
               transform: [{ translateX }],
-              // 動態計算藥丸的頂部垂直居中位置
               top: PADDING_TOP,
             },
           ]}

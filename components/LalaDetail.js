@@ -115,7 +115,15 @@ export default function LalaDetail({ title, onBack }) {
       );
       return;
     }
-  }
+    const isCurrentlyFavorite = favorites.some((fav) => fav.id === item.id);
+    toggleFavoriteStore(item);
+
+    if (isCurrentlyFavorite) {
+      Alert.alert('提示', '已從喜愛清單移除');
+    } else {
+      Alert.alert('提示', '已加入喜愛清單');
+    }
+  };
 
   const isItemFavorite = (id) => favorites.some(fav => fav.id === id);
 
@@ -127,9 +135,19 @@ export default function LalaDetail({ title, onBack }) {
         parentTitle: title
       }
     });
-  };
+  }
 
   const handleCopyEntireList = () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業',
+        [
+          { text: '取消', style: 'cancel' },
+          { text: '前往登入', onPress: () => router.push('/loginsignup') }
+        ]
+      );
+      return;
+    }
     setIsMenuVisible(true);
   };
 
@@ -436,7 +454,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 100,
+    top: 130,
     right: 20,
     width: 200,
     maxHeight: 450,

@@ -2,9 +2,11 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions, Alert, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { ALL_STRETCHES } from './stretchData';
 import useListStore from '../store/useListStore';
 import { useTheme } from '../context/ThemeContext';
+import { auth } from '../config/firebase';
 
 import TurnBackIcon from '../assets/images/TurnBack.svg';
 import PlusIcon from '../assets/images/Plus.svg';
@@ -19,6 +21,7 @@ const PAGE_BG = '#838D95';         // 下方區塊主要背景色
 const BUBBLE_BG = '#626C72';       // 說明欄內部背景色
 
 export default function ActionDetail({ actionId, parentTitle, onBack }) {
+  const router = useRouter();
   const { colors } = useTheme();
   const favorites = useListStore((state) => state.favorites) || [];
   const myLists = useListStore((state) => state.myLists) || [];
@@ -59,6 +62,16 @@ export default function ActionDetail({ actionId, parentTitle, onBack }) {
 
   const handleAddActionPress = () => {
     if (!actionData) return;
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業',
+        [
+          { text: '取消', style: 'cancel' },
+          { text: '前往登入', onPress: () => router.push('/loginsignup') }
+        ]
+      );
+      return;
+    }
     setIsMenuVisible(true);
   };
 
@@ -317,7 +330,7 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 100,                             
+    top: 130,                             
     right: 20,
     width: 200,                         
     maxHeight: 450,                      

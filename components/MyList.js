@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Pressable, View, Text, StyleSheet, Alert, Image, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -39,29 +39,63 @@ const recommend = [
     id: 'rec_full_body',
     name: '全身伸展',
     actions: [
-      { id: 'm2', name: '眼鏡蛇式', detail: '骨盆保持貼地。', time: '00:30', img: null },
-      { id: 'm3', name: '鳥犬式', detail: '專注於身體的平衡。', time: '00:30', img: null }
+      { id: 'm1', name: '貓牛式', time: '00:30', img: null },
+      { id: 'm2', name: '眼鏡蛇式', time: '00:30', img: null },
+      { id: 'm3', name: '鳥犬式', time: '00:30', img: null },
+      { id: 'm4', name: '動態手臂繞圈', time: '00:30', img: null },
+      { id: 'm5', name: '站姿體側伸展', time: '00:30', img: null },
+      { id: 'lb1', name: '抱膝至胸', time: '00:30', img: null },
+      { id: 's1', name: '十字交叉拉伸', time: '00:30', img: null },
+      { id: 'h1', name: '坐姿體前彎', time: '00:30', img: null },
+      { id: 'c2', name: '下犬式', time: '00:30', img: null },
+      { id: 'p2', name: '仰臥脊椎扭轉', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_upper_limb',
     name: '上肢伸展',
     actions: [
-      { id: 'b2', name: '背手下壓', detail: '過程中保持挺胸。', time: '00:30', img: null }
+      { id: 'b2', name: '背手下壓', time: '00:30', img: null },
+      { id: 'b1', name: '靠牆轉身拉伸', time: '00:30', img: null },
+      { id: 'b3', name: '手臂向後外旋', time: '00:30', img: null },
+      { id: 't1', name: '過頭肘部拉伸', time: '00:30', img: null },
+      { id: 't3', name: '傾斜伸展', time: '00:30', img: null },
+      { id: 'f1', name: '屈指肌腱拉伸', time: '00:30', img: null },
+      { id: 'f3', name: '祈禱式伸展', time: '00:30', img: null },
+      { id: 's2', name: '後背扣手', time: '00:30', img: null },
+      { id: 's3', name: '肩外旋', time: '00:30', img: null },
+      { id: 'n1', name: '坐姿側向拉頸', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_back',
     name: '背部伸展',
     actions: [
-      { id: 'l1', name: '貓式伸展', detail: '動作隨著呼吸頻率。', time: '00:30', img: null }
+      { id: 'l1', name: '貓式伸展', time: '00:30', img: null },
+      { id: 'l2', name: '站姿體側伸展', time: '00:30', img: null },
+      { id: 'l3', name: '靠牆傾斜', time: '00:30', img: null },
+      { id: 'lb1', name: '抱膝至胸', time: '00:30', img: null },
+      { id: 'lb2', name: '坐姿轉體', time: '00:30', img: null },
+      { id: 'lb3', name: '橋式運動', time: '00:30', img: null },
+      { id: 'm1', name: '貓牛式', time: '00:30', img: null },
+      { id: 'p2', name: '仰臥脊椎扭轉', time: '00:30', img: null },
+      { id: 'g2', name: '疊膝臀部伸展', time: '00:30', img: null },
     ]
   },
   {
     id: 'rec_lower_limb',
     name: '下肢伸展',
     actions: [
-      { id: 'f2', name: '反手撐地', detail: '手肘微彎避免鎖死。', time: '00:30', img: null }
+      { id: 'q1', name: '站姿單腳勾腿', time: '00:30', img: null },
+      { id: 'q2', name: '側臥拉腿', time: '00:30', img: null },
+      { id: 'h1', name: '坐姿體前彎', time: '00:30', img: null },
+      { id: 'h2', name: '單腳站姿壓腿', time: '00:30', img: null },
+      { id: 'a1', name: '蝴蝶式', time: '00:30', img: null },
+      { id: 'a2', name: '側向壓腿', time: '00:30', img: null },
+      { id: 'c1', name: '靠牆推小腿', time: '00:30', img: null },
+      { id: 'c2', name: '下犬式', time: '00:30', img: null },
+      { id: 'g1', name: '鴿式', time: '00:30', img: null },
+      { id: 'w1', name: '仰臥4字伸展', time: '00:30', img: null },
     ]
   },
 ];
@@ -95,7 +129,16 @@ export default function MyList() {
   const [recommendItem] = useState(recommend);
   const settings = useListStore((state) => state.settings);
 
+  const [isLogin, setIsLogin] = useState(!!auth.currentUser);
+  useEffect(() => {
+    const unLogin = auth.onAuthStateChanged((user) => {
+      setIsLogin(!!user);
+    });
+    return unLogin;
+  }, []);
+
   const favorites = useListStore((state) => state.favorites) || [];
+  const displayFavorites = isLogin ? favorites : [];
 
   const calculateDuration = (actions) => {
     if (!actions || actions.length === 0) return '約0秒';
@@ -122,10 +165,10 @@ export default function MyList() {
   const removeList = useListStore((state) => state.removeList);
 
   // 摺疊控制
-  const [isShow, showed] = useState(true); 
-  const [isMyShow, Myshowed] = useState(true); 
+  const [isShow, showed] = useState(true);
+  const [isMyShow, Myshowed] = useState(true);
 
-  const userCustomLists = myLists.filter(list => !list.id.toString().startsWith('rec_'));
+  const userCustomLists = isLogin ? myLists.filter(list => !list.id.toString().startsWith('rec_')) : [];
 
   const handlongPress = (id, title) => {
     Alert.alert(
@@ -138,10 +181,10 @@ export default function MyList() {
     );
   };
 
-  const handleCreate=()=>{
-    const user=auth.currentUser;
-    if(!user){
-      Alert.alert('尚未登入','請先進行登入作業');
+  const handleCreate = () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('尚未登入', '請先進行登入作業');
       return;
     }
     router.push('/create');
@@ -211,7 +254,7 @@ export default function MyList() {
             <View style={styles.categoryBlock}>
               <View style={styles.foldHeader}>
                 <Text style={styles.sectionHeaderLabel}>推薦</Text>
-                <Pressable 
+                <Pressable
                   onPressIn={() => animateScale(recArrowScale, 0.8)}
                   onPressOut={() => animateScale(recArrowScale, 1, true)}
                   onPress={() => showed(!isShow)}
@@ -246,7 +289,7 @@ export default function MyList() {
             <View style={styles.categoryBlock}>
               <View style={styles.foldHeader}>
                 <Text style={styles.sectionHeaderLabel}>我的</Text>
-                <Pressable 
+                <Pressable
                   onPressIn={() => animateScale(myArrowScale, 0.8)}
                   onPressOut={() => animateScale(myArrowScale, 1, true)}
                   onPress={() => Myshowed(!isMyShow)}
@@ -310,23 +353,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME_COLOR },
   header: { height: 80, backgroundColor: THEME_COLOR, alignItems: 'center', justifyContent: 'center' },
   headText: { fontSize: 24, fontWeight: '700', color: '#fff', letterSpacing: 1 },
-  
+
   mainContentArea: { flex: 1, backgroundColor: PAGE_BG },
   scrollInner: { flexGrow: 1 },
   listCon: { paddingVertical: 30, paddingHorizontal: 16 },
-  
+
   categoryBlock: { marginBottom: 20 },
   foldHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
   sectionHeaderLabel: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 15 },
-  
-  arrowRotated: { transform: [{ rotate: '-90deg' }] }, 
+
+  arrowRotated: { transform: [{ rotate: '-90deg' }] },
   cardGridGap: { gap: 12, width: '100%' },
 
   modernContentCard: {
     width: '100%',
     height: 115,
     backgroundColor: '#FFF',
-    borderRadius: 24, 
+    borderRadius: 24,
     flexDirection: 'row',
     paddingLeft: 24,
     paddingRight: 12,
@@ -342,16 +385,16 @@ const styles = StyleSheet.create({
   cardLeftContent: { flex: 1, justifyContent: 'center' },
   cardMainTitle: { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 6 },
   cardSubData: { fontSize: 12, color: '#666', fontWeight: '600', marginTop: 1 },
-  
+
   cardRightImageContainer: { width: 100, height: '100%', justifyContent: 'center', alignItems: 'center' },
   guyImage: { width: '100%', height: '90%' },
 
   // ==========================================
   // 【關鍵修正】提升 zIndex 層級、並向上挪移拉高底距，徹底免於導覽列遮擋
   // ==========================================
-  floatingBtnWrapper: { 
-    position: 'absolute', 
-    right: 20, 
+  floatingBtnWrapper: {
+    position: 'absolute',
+    right: 20,
     bottom: 150, // 從 30 大幅拉高到 90，完美浮在 TabBar 上方！
     zIndex: 99999, // 提高層級，確保百分之百霸氣穿透並蓋在導覽列最上層
   },

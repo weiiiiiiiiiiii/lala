@@ -10,9 +10,5 @@
 - package.json - 依賴的套件
 
 ## 要完成的功能
-- 個人頁面（components/Profile.js）的時間調整功能，中間框住所選時間的框框可以再大一點，然後「預設運動時間」最少只能選10秒，「每次休息時間」和「姿勢準備倒計時」最少只能選5秒，然後現在大力滑動數字的話數字會在畫面中間抖動，我想改善這功能
-- 個人頁面（components/Profile.js）音量調整移除，我想移除調整音量鍵
-
-
-
+- 編輯個人資料頁面(components/EditProfile.js)沒有做亮暗模式的渲染，請參考context/ThemeContext.js幫我實作
 

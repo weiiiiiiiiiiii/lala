@@ -385,7 +385,7 @@ export default function WorkoutPlayer({ listTitle = '伸展運動', actionsData 
       <SafeAreaView style={styles.pauseOverlay} edges={['top', 'bottom']}>
         <View style={styles.pauseHeader}>
           <Pressable onPress={triggerResume} style={styles.resumeNavBtn}>
-            <TurnBackIcon width={24} height={24} />
+            <TurnBackIcon width={24} height={24} stroke="#fff" color="#fff" />
             <Text style={styles.resumeNavText}>繼續運動</Text>
           </Pressable>
         </View>
